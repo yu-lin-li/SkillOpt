@@ -9,11 +9,14 @@ Repository-specific guidance for agents working in SkillOpt.
 - Keep entries clear and concise. Each experiment entry should state what was
   done, why it was done, the exact configuration/overrides used, the result,
   and the conclusion or next action.
-- Use Markdown tables for scanability. Include columns for date/time,
-  experiment name, goal, motivation, configuration, command or script, outputs,
-  results/metrics, issues encountered, fixes, and status.
-- When problems occur during an experiment, record the symptom, root cause when
-  known, the fix or workaround, and whether the issue is fully resolved.
+- Use Markdown tables only for information that benefits from side-by-side
+  scanning, such as experiment summaries, configs, metrics, output paths, and
+  status. Do not force all details into tables.
+- Use short prose or bullet lists for context, rationale, troubleshooting
+  narratives, root-cause analysis, and conclusions when that is clearer.
+- When problems occur during an experiment, record the symptom, root cause
+  when known, fix or workaround, and final resolution. A compact issue table is
+  fine for multiple issues; use short prose for a single nuanced issue.
 - Link to concrete files where useful, such as configs, scripts, output
   directories, `summary.json`, `history.json`, or generated skill files.
 - Do not invent results. If an experiment is interrupted, blocked, or only
