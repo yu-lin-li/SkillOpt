@@ -2,6 +2,23 @@
 
 Repository-specific guidance for agents working in SkillOpt.
 
+## Experiment Records
+
+- When running, modifying, or analyzing an experiment in this repository,
+  create or update the root `EXPERIMENT_LOG.md` automatically.
+- Keep entries clear and concise. Each experiment entry should state what was
+  done, why it was done, the exact configuration/overrides used, the result,
+  and the conclusion or next action.
+- Use Markdown tables for scanability. Include columns for date/time,
+  experiment name, goal, motivation, configuration, command or script, outputs,
+  results/metrics, issues encountered, fixes, and status.
+- When problems occur during an experiment, record the symptom, root cause when
+  known, the fix or workaround, and whether the issue is fully resolved.
+- Link to concrete files where useful, such as configs, scripts, output
+  directories, `summary.json`, `history.json`, or generated skill files.
+- Do not invent results. If an experiment is interrupted, blocked, or only
+  partially validated, record that state explicitly.
+
 ## Experiment Script Hygiene
 
 - Keep formal experiment entrypoints minimal and readable. Scripts such as
@@ -20,4 +37,3 @@ Repository-specific guidance for agents working in SkillOpt.
 - Add concise comments at the point where they clarify a non-obvious final
   decision, such as why raw data lives outside the repo or why a gateway auth
   override is required. Avoid comments that document temporary attempts.
-
