@@ -1,0 +1,138 @@
+"""SkillsBench adapter for ReflACT."""
+from __future__ import annotations
+
+import os
+from typing import Any
+
+from skillopt.datasets.base import BatchSpec
+from skillopt.envs.base import EnvAdapter
+from skillopt.envs.skillsbench.dataloader import SkillsBenchDataLoader
+from skillopt.envs.skillsbench.rollout import run_batch
+from skillopt.gradient.reflect import run_minibatch_reflect
+
+
+class SkillsBenchAdapter(EnvAdapter):
+    """Run SkillsBench domain tasks while preserving SkillOpt's update loop."""
+
+    def __init__(
+        self,
+        skillsbench_root: str = "/Users/liyulin/projects/skillsbench",
+        domain: str = "software-engineering",
+        tasks_dir: str = "",
+        split_mode: str = "ratio",
+        split_ratio: str = "2:1:7",
+        split_seed: int = 42,
+        split_dir: str = "",
+        split_output_dir: str = "",
+        seed: int = 42,
+        limit: int = 0,
+        skillsbench_agent: str = "claude-agent-acp",
+        skillsbench_model: str = "claude-haiku-4-5-20251001",
+        skillsbench_sandbox: str = "docker",
+        sandbox_user: str = "agent",
+        workers: int = 1,
+        analyst_workers: int = 4,
+        failure_only: bool = False,
+        minibatch_size: int = 3,
+        edit_budget: int = 4,
+        include_task_skills: bool = False,
+        agent_idle_timeout: int = 600,
+        skillsbench_agent_env: dict[str, str] | None = None,
+    ) -> None:
+        self.skillsbench_root = skillsbench_root
+        self.domain = domain
+        self.skillsbench_agent = skillsbench_agent
+        self.skillsbench_model = skillsbench_model or None
+        self.skillsbench_sandbox = skillsbench_sandbox
+        self.sandbox_user = sandbox_user or None
+        self.workers = int(workers or 1)
+        self.analyst_workers = int(analyst_workers or 1)
+        self.failure_only = failure_only
+        self.minibatch_size = int(minibatch_size or 1)
+        self.edit_budget = int(edit_budget or 4)
+        self.include_task_skills = bool(include_task_skills)
+        self.agent_idle_timeout = int(agent_idle_timeout) if agent_idle_timeout is not None else None
+        self.skillsbench_agent_env = dict(skillsbench_agent_env or {})
+        self.dataloader = SkillsBenchDataLoader(
+            skillsbench_root=skillsbench_root,
+            domain=domain,
+            tasks_dir=tasks_dir,
+            split_mode=split_mode,
+            split_ratio=split_ratio,
+            split_seed=split_seed,
+            split_dir=split_dir,
+            split_output_dir=split_output_dir,
+            seed=seed,
+            limit=limit,
+        )
+
+    def setup(self, cfg: dict) -> None:
+        super().setup(cfg)
+        self.dataloader.setup(cfg)
+
+    def get_dataloader(self):
+        return self.dataloader
+
+    def build_env_from_batch(self, batch: BatchSpec, **kwargs):
+        return list(batch.payload or [])
+
+    def build_train_env(self, batch_size: int, seed: int, **kwargs):
+        batch = self.dataloader.build_train_batch(batch_size=batch_size, seed=seed, **kwargs)
+        return self.build_env_from_batch(batch, **kwargs)
+
+    def build_eval_env(self, env_num: int, split: str, seed: int, **kwargs):
+        batch = self.dataloader.build_eval_batch(env_num=env_num, split=split, seed=seed, **kwargs)
+        return self.build_env_from_batch(batch, **kwargs)
+
+    def rollout(
+        self,
+        env_manager,
+        skill_content: str,
+        out_dir: str,
+        **kwargs,
+    ) -> list[dict[str, Any]]:
+        items: list[dict[str, Any]] = env_manager
+        return run_batch(
+            items=items,
+            skill_content=skill_content,
+            out_dir=out_dir,
+            skillsbench_root=self.skillsbench_root,
+            agent=self.skillsbench_agent,
+            model=self.skillsbench_model,
+            sandbox=self.skillsbench_sandbox,
+            sandbox_user=self.sandbox_user,
+            workers=self.workers,
+            include_task_skills=self.include_task_skills,
+            agent_idle_timeout=self.agent_idle_timeout,
+            agent_env=self.skillsbench_agent_env,
+        )
+
+    def reflect(
+        self,
+        results: list[dict],
+        skill_content: str,
+        out_dir: str,
+        **kwargs,
+    ) -> list[dict | None]:
+        prediction_dir = kwargs.get("prediction_dir", os.path.join(out_dir, "predictions"))
+        patches_dir = kwargs.get("patches_dir", os.path.join(out_dir, "patches"))
+        return run_minibatch_reflect(
+            results=results,
+            skill_content=skill_content,
+            prediction_dir=prediction_dir,
+            patches_dir=patches_dir,
+            workers=self.analyst_workers,
+            failure_only=self.failure_only,
+            minibatch_size=self.minibatch_size,
+            edit_budget=self.edit_budget,
+            random_seed=kwargs.get("random_seed"),
+            error_system=self.get_error_minibatch_prompt(),
+            success_system=self.get_success_minibatch_prompt(),
+            step_buffer_context=kwargs.get("step_buffer_context", ""),
+            meta_skill_context=kwargs.get("meta_skill_context", ""),
+            update_mode=getattr(self, "_cfg", {}).get("skill_update_mode", "patch"),
+        )
+
+    def get_task_types(self) -> list[str]:
+        return [self.domain]
+

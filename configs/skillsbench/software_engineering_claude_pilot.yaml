@@ -1,0 +1,45 @@
+_base_: ../_base_/default.yaml
+
+model:
+  # Optimizer/reflection stay on the default SkillOpt OpenAI chat backend.
+  target_backend: openai_chat
+
+train:
+  num_epochs: 4
+  train_size: 3
+  batch_size: 3
+  accumulation: 1
+  seed: 42
+
+gradient:
+  minibatch_size: 3
+  merge_batch_size: 4
+  analyst_workers: 4
+  failure_only: false
+
+optimizer:
+  learning_rate: 4
+  slow_update_samples: 3
+
+evaluation:
+  use_gate: true
+  sel_env_num: 0
+  test_env_num: 0
+  eval_test: false
+
+env:
+  name: skillsbench
+  skill_init: skillopt/envs/skillsbench/skills/software_engineering_initial.md
+  skillsbench_root: /Users/liyulin/projects/skillsbench
+  domain: software-engineering
+  split_mode: ratio
+  split_ratio: "2:1:7"
+  split_seed: 42
+  skillsbench_agent: claude-agent-acp
+  skillsbench_model: claude-haiku-4-5-20251001
+  skillsbench_sandbox: docker
+  sandbox_user: agent
+  include_task_skills: false
+  agent_idle_timeout: 600
+  workers: 1
+

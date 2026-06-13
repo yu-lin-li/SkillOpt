@@ -2,6 +2,14 @@
 
 ## Latest Completed Work
 
+- 2026-06-14 CST: Implemented the first SkillsBench migration pilot for
+  SkillOpt. Added a `skillsbench` environment adapter, deterministic
+  `software-engineering` domain split support, clean shadow task copies that
+  remove SkillsBench curated `environment/skills`, runtime `skillopt-target`
+  skill-pack generation, BenchFlow Python `Rollout` integration, and a pilot
+  config at `configs/skillsbench/software_engineering_claude_pilot.yaml`.
+  No real Claude/BenchFlow agent rollout was launched; only static and
+  no-Docker smoke checks were run.
 - 2026-06-07 CST: Completed post-hoc analysis of
   `outputs/skillopt_searchqa_gpt-5.5_20260529_235037/` for group-meeting
   documentation. Added a reproducible stdlib-only analysis script at
@@ -19,138 +27,72 @@
 
 ## Current Goal
 
-Run the full default SearchQA training experiment through the isolated
-`codex_exec` API path and record the result.
+Run a SkillsBench `software-engineering` domain pilot through SkillOpt's
+existing skill evolution loop.
 
 ## Current Status
 
-- 2026-06-07 CST: User requested another restart. A minimal isolated Codex API
-  probe was run before launching full default-scale training; it still returned
-  403/forbidden with quota exhaustion, so no full run was launched.
-- 2026-06-07 CST: User confirmed relaunch. Relaunch will keep default SearchQA
-  training hyperparameters and only override runtime reliability settings:
-  `env.exec_timeout=240` and `env.workers=8`.
-- 2026-06-07 00:29 CST: Relaunched at
-  `outputs/searchqa_codex_api_gpt-5.5_20260607_002906/`; baseline selection is
-  running.
-- 2026-06-07 CST: Relaunch baseline selection completed with hard=0.6500 and
-  soft=0.7394 on 200 `valid_seen` items, with 0 execution errors. Step 1 is
-  running.
-- 2026-06-07 CST: Step 1 rollout completed with hard=33/40=0.8250 and
-  0 execution errors; optimizer patch generation is running.
-- 2026-06-07 CST: The relaunched run was stopped during step 1 selection
-  evaluation. Baseline and rollout were clean, but selection eval had 24/24
-  execution errors, mostly 403/forbidden responses with quota exhaustion.
-- 2026-06-07 CST: Found and fixed an additional isolation issue: Codex CLI was
-  cloning OpenAI plugins into each isolated `CODEX_HOME`. The harness now uses
-  a temporary generated config in the isolated home, disables
-  `plugins`, `plugin_sharing`, and `shell_snapshot`, and no longer places the
-  provider base URL in process argv.
-- 2026-06-07 CST: Preflight complete for a default-configuration SearchQA
-  Codex run. Planned launch command is `bash scripts/run_searchqa_codex_api.sh`
-  with no scale-reducing overrides.
-- 2026-06-07 00:06 CST: Default SearchQA Codex run launched at
-  `outputs/searchqa_codex_api_gpt-5.5_20260607_000641/`; baseline selection is
-  running.
-- 2026-06-07 00:14 CST: The exact-default launch was stopped during step 1.
-  Baseline selection finished with hard=0.5150, but 59/200 baseline items were
-  execution errors from Codex CLI timeout or transient provider high-demand
-  failures, so the run is invalid for training conclusions.
-- 2026-06-07 CST: Added redaction for Codex CLI failure artifacts and sanitized
-  the aborted run output/runtime files.
-- 2026-06-06 CST: Implemented the isolated Codex API path:
-  added a neutral SearchQA runner, `model.codex_exec_runtime_root`, Codex CLI
-  isolation flags, minimal subprocess environment, repo-external work/home
-  directories, and per-item `codex_manifest.json`.
-- 2026-06-06 23:57 CST: Final one-item SearchQA Codex API smoke completed at
-  `outputs/searchqa_codex_api_gpt-5.5_20260606_235756/`. Result: 1 step,
-  0 accepts, 1 reject, 0 skips; final test hard=1.0000, soft=1.0000.
+- 2026-06-14 CST: Code-level migration scaffold is implemented and validated
+  without starting Docker/Claude agent rollouts.
+- The pilot config loads `env=skillsbench`, discovers 16
+  `software-engineering` tasks from `/Users/liyulin/projects/skillsbench`, and
+  produces the agreed `seed=42`, `2:1:7` split: train=3, val=2, test=11.
+- The first pilot is configured with `eval_test=false`, so it will train and
+  gate on validation only; held-out test can be enabled after the adapter smoke
+  succeeds.
 
 ## Current Decisions
 
-- Use the default SearchQA hyperparameters from `configs/searchqa/default.yaml`:
-  4 epochs, train size 400, batch size 40, full selection/test splits, slow
-  update enabled, and meta skill enabled.
-- Use neutral names only: `scripts/run_searchqa_codex_api.sh`,
-  `searchqa_codex_api_*`, and provider id `skillopt-experiment`.
-- Resolve default `model.codex_exec_runtime_root` relative to the project root:
-  `../harness_state/skillopt` -> `/Users/liyulin/projects/harness_state/skillopt`.
-- Keep durable experiment artifacts under the normal `out_root`; keep Codex
-  live cwd and `CODEX_HOME` under the repo-external runtime tree.
-- In isolated Codex runs, use a generated per-item `CODEX_HOME/config.toml`
-  instead of provider `-c ...base_url=...` argv overrides; remove that config
-  after the CLI call.
-- Disable Codex `plugins`, `plugin_sharing`, and `shell_snapshot` for target
-  subprocesses so the live cwd/home contain only explicit experiment inputs and
-  required runtime state.
-- Force the SearchQA runner to use `target_backend=codex_exec`,
-  `optimizer_backend=openai_chat`, and `codex_exec_use_sdk=cli`.
+- Use SkillsBench tasks and verifiers, but not SkillsBench human-curated
+  skills.
+- Use SkillsBench `[metadata].category` as the domain; first pilot domain is
+  `software-engineering`.
+- Evolve one shared skill for the domain, not one skill per task.
+- Split with `seed=42`, `train:validation:test=2:1:7`, which gives `3/2/11`
+  for the 16-task software-engineering domain.
+- Use `claude-agent-acp` for target rollouts through BenchFlow Python API.
+- Keep SkillOpt optimizer/reflection on the current SkillOpt configuration.
+- Initialize the domain skill with SkillOpt's existing empty-rule style:
+  `(No learned rules yet. Rules will be added through the reflection process.)`.
+- Generate a runtime `skillopt-target/SKILL.md` skill pack using the existing
+  `render_skill_md` style; do not add frontmatter protection.
+- Convert BenchFlow/ACP trajectories into SkillOpt's existing
+  `conversation.json` format for reflection.
+- First pilot uses `train_size=3`, `batch_size=3`, `num_epochs=4`,
+  `slow_update_samples=3`, and `eval_test=false`.
 
 ## Current Next Steps
 
-- Wait until the API account has usable quota again.
-- After quota is restored, relaunch with default training hyperparameters plus
-  the operational reliability overrides:
-  `bash scripts/run_searchqa_codex_api.sh --cfg-options env.exec_timeout=240 env.workers=8`.
-- On relaunch, verify no plugin clone processes appear and no provider endpoint
-  or API-key-shaped strings remain in durable artifacts after sanitization.
+- Run a real one-step or full validation-gated pilot only after confirming
+  Docker and Claude/BenchFlow auth are ready.
+- Suggested first command:
+  `uv run python scripts/train.py --config configs/skillsbench/software_engineering_claude_pilot.yaml`.
+- If the pilot completes, enable held-out test with
+  `--cfg-options evaluation.eval_test=true` and keep the same split.
 
 ## Current Blockers
 
-- Current API calls return 403/forbidden with quota exhaustion. A meaningful
-  full run cannot continue until quota is restored.
-- Exact-default runtime settings (`env.workers=24`, `env.exec_timeout=120`)
-  produced many transient Codex execution failures through the configured API
-  service; future full attempts should keep the training defaults but use
-  `env.exec_timeout=240` and `env.workers=8` unless a stronger rate limit is
-  needed.
+- No code-level blocker is known.
+- Real rollout validation still requires working Docker/BenchFlow runtime and
+  Claude credentials or subscription auth for `claude-agent-acp`.
 
 ## Current Validation
 
-- 2026-06-07 restart probe used the current isolated Codex harness under
-  `/private/tmp/skillopt_codex_quota_probe`; it failed before full launch with
-  403/forbidden quota exhaustion.
-- Probe redaction check passed, and probe cleanup checks found no
-  `plugins-clone`, `shell_snapshots`, or generated `config.toml` residue.
-- Process check confirmed no remaining training, `codex exec`, or plugin clone
-  process after the probe.
-- Preflight confirmed the runner exists and default SearchQA config keeps the
-  full-scale settings requested for this run.
-- Aborted exact-default output:
-  `outputs/searchqa_codex_api_gpt-5.5_20260607_000641/`.
-- Aborted reliability-relaunch output:
-  `outputs/searchqa_codex_api_gpt-5.5_20260607_002906/`.
-- Relaunch baseline selection: 130/200 hard=0.6500, soft=0.7394, 0 execution
-  errors.
-- Relaunch step 1 rollout: 33/40 hard=0.8250, 0 execution errors.
-- Relaunch step 1 selection eval: stopped after 24/200, with 24 execution
-  errors dominated by 403/forbidden/quota responses.
-- Redaction check passed for the aborted output and repo-external runtime tree.
-- Redaction check passed for the second aborted output, repo-external runtime
-  tree, and temporary Codex probes.
-- Process check confirmed no remaining run, `codex exec`, plugin clone, or
-  wide local search process.
-- Syntax checks after redaction changes passed:
-  `.venv/bin/python3 -m py_compile skillopt/model/codex_harness.py skillopt/envs/searchqa/rollout.py`.
-- `bash -n scripts/run_searchqa_codex_api.sh` passed.
-- `.venv/bin/python3 -m compileall -q scripts skillopt` passed.
+- `uv run python -m py_compile skillopt/envs/skillsbench/dataloader.py skillopt/envs/skillsbench/rollout.py skillopt/envs/skillsbench/adapter.py scripts/train.py`
+  passed.
+- `.venv/bin/python -m py_compile skillopt/envs/skillsbench/dataloader.py skillopt/envs/skillsbench/rollout.py skillopt/envs/skillsbench/adapter.py scripts/train.py`
+  passed.
+- Config/adapter smoke passed and confirmed split:
+  train=`flink-query`, `llm-prefix-cache-replay`, `fix-build-google-auto`;
+  val=`fix-visual-stability`, `spring-boot-jakarta-migration`; test has 11
+  tasks.
+- Shadow-task smoke on `dialogue-parser` confirmed `environment/skills` is
+  removed.
+- Skill-pack smoke confirmed `skillopt-target/SKILL.md` is generated with
+  YAML frontmatter.
+- BenchFlow import smoke confirmed `RolloutConfig` imports from the local
+  SkillsBench `.venv`.
 - `git diff --check` passed.
-- Monkeypatch argv probe passed: isolated Codex CLI calls no longer include the
-  provider base URL in argv, do include plugin/snapshot disable flags, and
-  remove generated `config.toml` after the call.
-- `uv run python -c ... scripts.train.load_config(...)` confirmed
-  `target_backend=codex_exec`, `optimizer_backend=openai_chat`,
-  `codex_exec_use_sdk=cli`, `codex_exec_runtime_root=../harness_state/skillopt`,
-  and target model `gpt-5.5`.
-- Function-level artifact check verified bytes raw output is coerced to text
-  before writing `codex_raw.txt`.
-- Final smoke completed at
-  `outputs/searchqa_codex_api_gpt-5.5_20260606_235756/`; repo-external runtime
-  state was created at
-  `../harness_state/skillopt/searchqa_codex_api_gpt-5.5_20260606_235756/`.
-- Final artifact grep found no actual endpoint string, no API-key-shaped
-  secret, no `/Users/liyulin/.codex`, and no repo `AGENTS.md` / `.agents` path
-  in `codex_raw.txt`, `codex_manifest.json`, `config.json`, or `summary.json`.
 
 ## Previous Goal
 

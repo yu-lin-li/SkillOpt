@@ -463,6 +463,65 @@ Next action: restore API quota, then rerun the same default-scale command with
 `env.exec_timeout=240 env.workers=8` and verify that no plugin clone processes
 or provider endpoint strings appear in the resulting artifacts.
 
+## SkillsBench Migration Pilot
+
+| Date/Time | Experiment | Goal | Scope | Status |
+| --- | --- | --- | --- | --- |
+| 2026-06-14 CST | SkillsBench software-engineering SkillOpt pilot scaffold | Use SkillsBench tasks/verifiers while evolving SkillOpt's own domain skill, without SkillsBench human-curated skills. | Code/config implementation plus no-Docker smoke checks; no real Claude/BenchFlow agent rollout launched. | Scaffold implemented |
+
+Configuration decisions:
+- Domain is SkillsBench `software-engineering`, derived from
+  `[metadata].category`.
+- Split uses `seed=42` and `train:validation:test=2:1:7`, yielding train=3,
+  validation=2, test=11 for the 16-task domain.
+- Train tasks: `flink-query`, `llm-prefix-cache-replay`,
+  `fix-build-google-auto`.
+- Validation tasks: `fix-visual-stability`, `spring-boot-jakarta-migration`.
+- Test tasks: `parallel-tfidf-search`, `react-performance-debugging`,
+  `jax-computing-basics`, `data-to-d3`, `debug-trl-grpo`,
+  `simpo-code-reproduction`, `tictoc-unnecessary-abort-detection`,
+  `fix-build-agentops`, `python-scala-translation`,
+  `azure-bgp-oscillation-route-leak`, `dialogue-parser`.
+- Target rollout backend is BenchFlow `claude-agent-acp`; optimizer/reflection
+  remains SkillOpt's current OpenAI chat configuration.
+- First pilot uses `train_size=3`, `batch_size=3`, `num_epochs=4`,
+  `slow_update_samples=3`, and `eval_test=false`.
+
+Implemented artifacts:
+- [adapter.py](skillopt/envs/skillsbench/adapter.py) wires the new env into
+  SkillOpt's existing rollout/reflect contract.
+- [dataloader.py](skillopt/envs/skillsbench/dataloader.py) discovers
+  SkillsBench tasks by domain and writes deterministic split manifests.
+- [rollout.py](skillopt/envs/skillsbench/rollout.py) creates clean shadow
+  tasks, removes curated `environment/skills`, generates the runtime
+  `skillopt-target` skill pack, invokes BenchFlow `Rollout`, and converts
+  ACP trajectories into SkillOpt `conversation.json`.
+- [software_engineering_initial.md](skillopt/envs/skillsbench/skills/software_engineering_initial.md)
+  is the initial SkillOpt domain skill. It uses SkillOpt's existing empty-rule
+  initialization style rather than handwritten software-engineering guidance.
+- [software_engineering_claude_pilot.yaml](configs/skillsbench/software_engineering_claude_pilot.yaml)
+  is the pilot config.
+
+Validation:
+- `uv run python -m py_compile skillopt/envs/skillsbench/dataloader.py skillopt/envs/skillsbench/rollout.py skillopt/envs/skillsbench/adapter.py scripts/train.py`
+  passed.
+- `.venv/bin/python -m py_compile skillopt/envs/skillsbench/dataloader.py skillopt/envs/skillsbench/rollout.py skillopt/envs/skillsbench/adapter.py scripts/train.py`
+  passed.
+- Config/adapter smoke confirmed the expected split and `train_size=3`.
+- Shadow-task smoke confirmed curated task skills are removed.
+- Skill-pack smoke confirmed `skillopt-target/SKILL.md` frontmatter is
+  generated.
+- BenchFlow import smoke confirmed local SkillsBench `.venv` provides
+  `benchflow.rollout.RolloutConfig`.
+- `git diff --check` passed.
+
+Next action:
+- Launch the validation-gated pilot when Docker and Claude/BenchFlow auth are
+  ready:
+  `uv run python scripts/train.py --config configs/skillsbench/software_engineering_claude_pilot.yaml`.
+- After the pilot passes, enable held-out test with
+  `--cfg-options evaluation.eval_test=true`.
+
 ## SearchQA Codex API Restart Probe
 
 | Date/Time | Experiment | Goal | Scope | Status |

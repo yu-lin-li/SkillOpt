@@ -84,6 +84,11 @@ def _register_builtins() -> None:
     except ImportError:
         pass
     try:
+        from skillopt.envs.skillsbench.adapter import SkillsBenchAdapter
+        _ENV_REGISTRY["skillsbench"] = SkillsBenchAdapter
+    except ImportError:
+        pass
+    try:
         from skillopt.envs.sealqa.adapter import SealQAAdapter
         _ENV_REGISTRY["sealqa"] = SealQAAdapter
     except ImportError:
