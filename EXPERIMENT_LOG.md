@@ -171,6 +171,24 @@ completed normally.
 - Final test completed on 1400 `valid_unseen` items: baseline hard=0.7936,
   best learned hard=0.8650, hard delta=+0.0714.
 
+### SearchQA Training Analysis and Visualization
+
+| Date/Time | Goal | Inputs | Command | Outputs | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-06-07 CST | Analyze the completed SearchQA training run in more detail for group-meeting documentation. | `outputs/skillopt_searchqa_gpt-5.5_20260529_235037/summary.json`, `history.json`, `test_eval*/results.jsonl`, slow/meta logs. | `uv run python scripts/dev/analyze_searchqa_run.py` | [searchqa_experiment_flow.md](docs/searchqa_experiment_flow.md), [analysis_summary.json](docs/assets/searchqa_analysis/analysis_summary.json), SVG figures under `docs/assets/searchqa_analysis/`. | Completed |
+
+The analysis added score dynamics, epoch acceptance, token usage, runtime,
+completion-token effect, edit dynamics, and test-set migration visualizations to
+[docs/searchqa_experiment_flow.md](docs/searchqa_experiment_flow.md). Key
+findings: all 40 candidates beat the initial validation baseline, but only
+7/40 were accepted against the current skill; train-batch hard and validation
+hard had weak correlation (Pearson r=0.20); rollout/eval dominated cost
+(90.5% tokens and 97.3% calls); per-step completion tokens had negative
+correlation with candidate effect (Pearson r=-0.34); test migration was
+117 fixes vs 17 regressions, for a net +100 exact-match answers. No new model
+calls or training/evaluation runs were performed; the script only analyzed
+saved logs and result files.
+
 ## SearchQA Baseline Evaluations
 
 | Date/Time | Experiment | Goal | Configuration | Command | Output | Status |
@@ -213,3 +231,255 @@ that failed timestamped output was used. The runner was fixed, checked with
   training run.
 - The completed run used output directory
   `outputs/searchqa_no_skill_baseline_gpt-5.5_20260606_160335/`.
+
+## SearchQA Claude Code Preflight Analysis
+
+| Date/Time | Goal | Scope | Status |
+| --- | --- | --- | --- |
+| 2026-06-06 22:38:51 CST | Analyze whether a SearchQA run can be reproduced with `claude_code_exec` and how to avoid local Claude Code contamination. | Code/config inspection plus local CLI/import checks; no model inference run. | Analysis only |
+
+Key findings:
+- `configs/_base_/default.yaml` defines `claude_code_exec_use_sdk: auto`,
+  `claude_code_exec_path: claude`, and `claude_code_exec_effort: medium`.
+- `skillopt/model/common.py` maps `claude_code_exec` to default target model
+  `claude-sonnet-4-6`.
+- `scripts/train.py` can auto-switch an OpenAI sentinel target model to the
+  Claude default for `claude_code_exec`, but only when no explicit
+  `--target_model`/`model.target` override is present.
+- `scripts/run_searchqa.sh` always passes `--target_model "${TARGET_MODEL}"`,
+  whose default is `gpt-5.5`, so a direct wrapper launch with only
+  `--backend claude_code_exec` would not load the Claude default model. Set
+  `TARGET_MODEL=claude-sonnet-4-6` or pass
+  `--target_model claude-sonnet-4-6`.
+- The local Claude CLI is available at `/Users/liyulin/.local/bin/claude`,
+  reports version `2.1.162 (Claude Code)`, and is logged in via
+  `ANTHROPIC_API_KEY`. The project `.venv` currently does not import
+  `claude_agent_sdk`, so `auto` mode would try SDK first and then fall back to
+  CLI.
+
+Isolation note: the current CLI path in `skillopt/model/codex_harness.py` sets
+`cwd` to each prediction workspace and passes `--add-dir`, `--tools`,
+`--allowedTools`, `--permission-mode`, `--model`, and reasoning flags, but it
+does not pass `--bare`, `--no-session-persistence`, `--setting-sources`, or an
+isolated settings file. Therefore local user-level Claude settings, plugins,
+memory, and session persistence can influence or record the experiment unless
+the harness is extended or a wrapper `claude` binary is used.
+
+Suggested safe smoke configuration:
+
+```bash
+TARGET_MODEL=claude-sonnet-4-6 bash scripts/run_searchqa.sh \
+  --backend claude_code_exec \
+  --claude_code_exec_use_sdk cli \
+  --claude_code_exec_max_thinking_tokens 0 \
+  --num_epochs 1 \
+  --train_size 1 \
+  --batch_size 1 \
+  --sel_env_num 1 \
+  --test_env_num 1 \
+  --workers 1 \
+  --out_root outputs/smoke_searchqa_claude_code_sonnet46_$(date +%Y%m%d_%H%M%S)
+```
+
+## SearchQA Codex API Isolation Smoke
+
+| Date/Time | Experiment | Goal | Output | Status |
+| --- | --- | --- | --- | --- |
+| 2026-06-06 23:57:56 CST | SearchQA Codex API isolated smoke | Verify SearchQA `codex_exec` can run through the API environment while isolating Codex live cwd, `HOME`, and `CODEX_HOME` outside the repo. | `outputs/searchqa_codex_api_gpt-5.5_20260606_235756/` | Completed |
+
+Configuration:
+- Runner: `bash scripts/run_searchqa_codex_api.sh`
+- Target path: `target_backend=codex_exec`, `codex_exec_use_sdk=cli`,
+  target model `gpt-5.5`.
+- Optimizer path: `optimizer_backend=openai_chat`, optimizer model `gpt-5.5`.
+- Smoke overrides: `num_epochs=1`, `train_size=1`, `batch_size=1`,
+  `minibatch_size=1`, `merge_batch_size=1`, `sel_env_num=1`,
+  `test_env_num=1`, `workers=1`, `analyst_workers=1`,
+  `use_slow_update=false`, `use_meta_skill=false`, `lr_scheduler=constant`,
+  `env.exec_timeout=240`.
+- Runtime root: `../harness_state/skillopt`, resolved in manifests to
+  `/Users/liyulin/projects/harness_state/skillopt`.
+
+Result summary:
+
+| Stage | Result | Notes |
+| --- | --- | --- |
+| Baseline selection | hard=1/1, soft=1.0000 | Initial skill on one `valid_seen` item. |
+| Train rollout | hard=1/1, soft=1.0000 | Answered `Tom Clancy`; generated one success-side patch. |
+| Candidate selection | hard=1/1, soft=1.0000 | Candidate tied current score, so strict-improvement rule rejected it. |
+| Final test | baseline hard=1/1, best hard=1/1 | Delta hard=+0.0000 on one `valid_unseen` item. |
+| Run totals | 1 step, 0 accepts, 1 reject, 0 skips | Wall time 60.2s; token summary 2,110 total tokens across 6 calls. |
+
+Key artifacts:
+- [summary.json](outputs/searchqa_codex_api_gpt-5.5_20260606_235756/summary.json)
+  records the smoke config, metrics, wall time, and token accounting.
+- [config.json](outputs/searchqa_codex_api_gpt-5.5_20260606_235756/config.json)
+  confirms `azure_openai_endpoint` is empty in artifacts, while runtime uses
+  environment variables.
+- [runtime_state.json](outputs/searchqa_codex_api_gpt-5.5_20260606_235756/runtime_state.json)
+  records `last_completed_step=1`, `best_step=0`, and `best_score=1.0`.
+- [history.json](outputs/searchqa_codex_api_gpt-5.5_20260606_235756/history.json)
+  records the rejected candidate step and generated edit counts.
+- [codex_manifest.json](outputs/searchqa_codex_api_gpt-5.5_20260606_235756/test_eval/predictions/5093b6d997674d25be29a4c94fcd5185/codex_manifest.json)
+  shows the repo-external live cwd and isolated `CODEX_HOME` for one target
+  call.
+- `codex_raw.txt` and `codex_trace_summary.txt` are present under each target
+  prediction directory; five Codex target calls were recorded.
+- Repo-external runtime state was preserved under
+  `../harness_state/skillopt/searchqa_codex_api_gpt-5.5_20260606_235756/`.
+
+Isolation checks:
+- `codex_manifest.json` records `ignore_user_config=true`,
+  `ignore_rules=true`, `ephemeral=true`, `minimal_subprocess_env=true`, and
+  `repo_outside_live_cwd=true`.
+- Live cwd and isolated homes are under
+  `/Users/liyulin/projects/harness_state/skillopt/...`, not under the repo.
+- No `codex_exec` live workspace was written under the repo output directory.
+- Grep over final `codex_raw.txt`, `codex_manifest.json`, `config.json`, and
+  `summary.json` found no actual endpoint string, no API-key-shaped secret, no
+  `/Users/liyulin/.codex`, and no repo `AGENTS.md` / `.agents` path.
+
+Issues resolved:
+- The runner initially passed the API endpoint as a CLI config override, which
+  made the actual endpoint appear in `config.json`/`summary.json`. The runner
+  now relies on environment variables for the endpoint and only passes
+  auth-mode overrides; the final smoke artifacts keep endpoint fields empty.
+- An intermediate smoke exposed a timeout-path bug: `subprocess.TimeoutExpired`
+  can carry bytes in `stdout`/`stderr`, and raw artifact writing expected
+  strings. `skillopt/model/codex_harness.py` now coerces captured output to
+  text before writing artifacts, and a function-level check verified bytes raw
+  can be persisted.
+- A direct `~/.codex` keyword grep is noisy because the active system Codex
+  conversation itself records this plan. The final isolation check therefore
+  relies on the experiment manifests, live cwd paths, subprocess env design,
+  and raw artifact grep.
+
+## SearchQA Codex API Default Run Attempt
+
+| Date/Time | Experiment | Goal | Command | Output | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-06-07 00:06 CST | SearchQA Codex API exact-default attempt | Run full SearchQA default training through isolated `codex_exec`. | `bash scripts/run_searchqa_codex_api.sh` | `outputs/searchqa_codex_api_gpt-5.5_20260607_000641/` | Aborted / invalid |
+
+Configuration:
+- Training configuration came from [configs/searchqa/default.yaml](configs/searchqa/default.yaml):
+  4 epochs, train size 400, batch size 40, 10 steps per epoch, full
+  selection/test splits, slow update enabled, and meta skill enabled.
+- Runtime settings were also exact default: `env.workers=24` and
+  `env.exec_timeout=120`.
+- Codex target path used the isolated API runner:
+  [scripts/run_searchqa_codex_api.sh](scripts/run_searchqa_codex_api.sh),
+  `target_backend=codex_exec`, `codex_exec_use_sdk=cli`, target model
+  `gpt-5.5`, optimizer backend `openai_chat`.
+
+Outcome:
+- Baseline selection completed on 200 `valid_seen` items with hard=0.5150 and
+  soft=0.5891, but this is not a meaningful model-quality measurement.
+- 59/200 baseline items had execution-level failures, mainly Codex CLI timeout
+  at 120s or transient provider high-demand reconnect failures.
+- The run had already entered step 1, where early train rollout items were also
+  failing, so it was terminated to avoid producing invalid training signal and
+  unnecessary API usage.
+
+Issues and fixes:
+
+| Issue | Evidence | Resolution |
+| --- | --- | --- |
+| Default runtime settings overloaded or outpaced the API path. | Baseline had 59 execution errors and step 1 began with execution failures. | Marked this run invalid; next meaningful run should keep default training hyperparameters but use operational reliability overrides such as lower concurrency and a longer timeout, or retry later under better service conditions. |
+| Failure artifacts could include provider endpoint text via Python timeout exception strings. | Timeout `fail_reason` used the raw `TimeoutExpired` string, which includes argv. | Added centralized redaction in [codex_harness.py](skillopt/model/codex_harness.py) and applied it before writing Codex raw artifacts or SearchQA `fail_reason`; sanitized this aborted run's output/runtime files. |
+
+Validation:
+- `.venv/bin/python3 -m py_compile skillopt/model/codex_harness.py skillopt/envs/searchqa/rollout.py`
+  passed after the redaction fix.
+- A synthetic redaction check confirmed provider endpoint text and API-key
+  shaped values are replaced with placeholders.
+- Grep over the aborted output and repo-external runtime tree found no remaining
+  provider-name or API-key-shaped strings after sanitization.
+
+## SearchQA Codex API Reliability Relaunch Attempt
+
+| Date/Time | Experiment | Goal | Command | Output | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-06-07 00:29 CST | SearchQA Codex API default-scale relaunch | Keep default SearchQA training hyperparameters, but reduce API pressure with operational runtime overrides. | `bash scripts/run_searchqa_codex_api.sh --cfg-options env.exec_timeout=240 env.workers=8` | `outputs/searchqa_codex_api_gpt-5.5_20260607_002906/` | Aborted / blocked |
+
+Configuration:
+- Training scale remained the default from
+  [configs/searchqa/default.yaml](configs/searchqa/default.yaml): 4 epochs,
+  train size 400, batch size 40, 10 steps per epoch, full selection/test
+  splits, slow update enabled, and meta skill enabled.
+- Runtime reliability overrides were `env.exec_timeout=240` and
+  `env.workers=8`.
+- Target path remained `target_backend=codex_exec`, `codex_exec_use_sdk=cli`,
+  target model `gpt-5.5`; optimizer remained `openai_chat` with `gpt-5.5`.
+
+Outcome:
+- Baseline selection completed cleanly: 130/200 exact-match answers,
+  hard=0.6500, soft=0.7394, with 0 execution errors.
+- Step 1 rollout also completed cleanly: 33/40 exact-match answers,
+  hard=0.8250, with 0 execution errors.
+- The optimizer generated 6 minibatch patch files, merged 2 edits, and produced
+  [candidate_skill.md](outputs/searchqa_codex_api_gpt-5.5_20260607_002906/steps/step_0001/candidate_skill.md).
+- Step 1 candidate selection was stopped after 24/200 items because all 24
+  completed items were execution errors. Most were 403/forbidden responses, and
+  the direct Codex probe confirmed quota exhaustion from the API account.
+
+Issue notes:
+- Lowering concurrency and increasing timeout fixed the earlier high-demand
+  timeout pattern during baseline and train rollout.
+- The run still cannot complete until the API account has usable quota again.
+- Process inspection revealed Codex CLI was cloning OpenAI plugins into each
+  isolated `CODEX_HOME`, even with `--ignore-user-config` and `--ephemeral`.
+  This did not read user-local plugins, but it added remote plugin state that
+  should not be part of the target workspace.
+- Codex CLI command args also previously contained the provider base URL because
+  provider config was passed with `-c model_providers...base_url=...`.
+
+Fixes made after abort:
+- [codex_harness.py](skillopt/model/codex_harness.py) now writes a temporary
+  per-item `CODEX_HOME/config.toml` containing the neutral provider config,
+  instead of passing provider base URL in argv.
+- The generated config is removed after each Codex CLI call; if removal fails,
+  it is overwritten with a redacted stub.
+- Isolated target calls now disable `plugins`, `plugin_sharing`, and
+  `shell_snapshot`, while keeping `--ignore-rules`, `--ephemeral`,
+  `--skip-git-repo-check`, repo-external live cwd, isolated `HOME`, and
+  isolated `CODEX_HOME`.
+- `codex_manifest.json` now records `uses_isolated_generated_config=true`,
+  `provider_config_in_argv=false`, and the plugin/snapshot disable flags.
+
+Validation:
+- `bash -n scripts/run_searchqa_codex_api.sh` passed.
+- `.venv/bin/python3 -m compileall -q scripts skillopt` passed.
+- `git diff --check` passed.
+- A monkeypatch argv probe verified isolated Codex CLI calls no longer include
+  provider base URL in argv, include the plugin/snapshot disable flags, set
+  `HOME` and `CODEX_HOME` to the isolated home, and remove the generated
+  `config.toml` after the call.
+- Redaction grep passed over the aborted output, repo-external runtime tree,
+  and temporary Codex probes after sanitization.
+- Process check confirmed no remaining training, `codex exec`, plugin clone, or
+  broad local search process.
+
+Next action: restore API quota, then rerun the same default-scale command with
+`env.exec_timeout=240 env.workers=8` and verify that no plugin clone processes
+or provider endpoint strings appear in the resulting artifacts.
+
+## SearchQA Codex API Restart Probe
+
+| Date/Time | Experiment | Goal | Scope | Status |
+| --- | --- | --- | --- | --- |
+| 2026-06-07 CST | SearchQA Codex API quota probe before restart | Check whether the API account can run Codex again before launching full default-scale training. | One isolated Codex target call under `/private/tmp/skillopt_codex_quota_probe`; no SearchQA full run launched. | Blocked |
+
+Result:
+- The isolated Codex target probe failed with 403/forbidden quota exhaustion.
+- Because the blocker occurs before a single target answer can complete, the
+  full SearchQA run was not launched.
+- The current retry command remains:
+  `bash scripts/run_searchqa_codex_api.sh --cfg-options env.exec_timeout=240 env.workers=8`.
+
+Validation:
+- Probe artifacts were redacted successfully; grep found no provider-name or
+  API-key-shaped strings.
+- The probe left no `plugins-clone`, `shell_snapshots`, or generated
+  `config.toml` residue in the isolated home.
+- Process check found no remaining training, `codex exec`, or plugin clone
+  process after the probe.
