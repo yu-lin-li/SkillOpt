@@ -1,0 +1,422 @@
+{
+  "out_root": "/Users/liyulin/projects/SkillOpt/outputs/skillopt_searchqa_gpt-5.5_20260529_235037",
+  "summary": {
+    "baseline_selection_hard": 0.755,
+    "best_selection_hard": 0.875,
+    "baseline_test_hard": 0.7935714285714286,
+    "test_hard": 0.865,
+    "baseline_test_soft": 0.8924868385582672,
+    "test_soft": 0.9264206349206349,
+    "test_delta_hard": 0.0714285714285714,
+    "best_step": 37,
+    "total_steps": 40,
+    "total_accepts": 7,
+    "total_rejects": 33,
+    "total_wall_time_s": 8790.0,
+    "total_tokens": 44115918,
+    "total_calls": 13069
+  },
+  "step_analysis": {
+    "accepted_steps": [
+      1,
+      2,
+      4,
+      9,
+      26,
+      30,
+      37
+    ],
+    "rejected_steps": [
+      3,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      27,
+      28,
+      29,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      38,
+      39,
+      40
+    ],
+    "tie_reject_steps": [
+      10,
+      11,
+      14
+    ],
+    "accept_rate": 0.175,
+    "selection_hard_min": 0.805,
+    "selection_hard_max": 0.875,
+    "selection_hard_mean": 0.841,
+    "rollout_selection_pearson": 0.19549797111825473,
+    "accepted_selection_mean": 0.8485714285714285,
+    "rejected_selection_mean": 0.8393939393939394,
+    "candidate_above_initial_baseline_count": 40
+  },
+  "token_analysis": {
+    "token_percent": {
+      "analyst": 0.08315452032529393,
+      "merge": 0.007759330770358218,
+      "meta_skill": 0.000435171721916792,
+      "ranking": 0.0032849594107958948,
+      "rollout": 0.9047902618732767,
+      "slow_update": 0.0005757558983585018
+    },
+    "call_percent": {
+      "analyst": 0.018134516795470196,
+      "merge": 0.0055092202922947435,
+      "meta_skill": 0.00022955084551228098,
+      "ranking": 0.0027546101461473718,
+      "rollout": 0.9731425510750631,
+      "slow_update": 0.00022955084551228098
+    },
+    "completion_effect": {
+      "completion_tokens_vs_effect_pearson": -0.336736997207568,
+      "completion_tokens_vs_selection_hard_pearson": 0.13955559959273928,
+      "accepted_completion_tokens_mean": 32177.714285714286,
+      "rejected_completion_tokens_mean": 34174.666666666664,
+      "positive_effect_steps": 7,
+      "zero_effect_steps": 3,
+      "negative_effect_steps": 30,
+      "top_completion_token_steps": [
+        {
+          "step": 39,
+          "completion_tokens": 39683,
+          "prompt_tokens": 1064880,
+          "selection_hard": 0.865,
+          "prev_current_hard": 0.875,
+          "effect": -0.010000000000000009,
+          "accepted": false,
+          "action": "reject"
+        },
+        {
+          "step": 6,
+          "completion_tokens": 38311,
+          "prompt_tokens": 774614,
+          "selection_hard": 0.82,
+          "prev_current_hard": 0.84,
+          "effect": -0.020000000000000018,
+          "accepted": false,
+          "action": "reject"
+        },
+        {
+          "step": 10,
+          "completion_tokens": 38288,
+          "prompt_tokens": 855533,
+          "selection_hard": 0.845,
+          "prev_current_hard": 0.845,
+          "effect": 0.0,
+          "accepted": false,
+          "action": "reject"
+        },
+        {
+          "step": 38,
+          "completion_tokens": 38208,
+          "prompt_tokens": 1046567,
+          "selection_hard": 0.855,
+          "prev_current_hard": 0.875,
+          "effect": -0.020000000000000018,
+          "accepted": false,
+          "action": "reject"
+        },
+        {
+          "step": 12,
+          "completion_tokens": 37061,
+          "prompt_tokens": 843591,
+          "selection_hard": 0.835,
+          "prev_current_hard": 0.845,
+          "effect": -0.010000000000000009,
+          "accepted": false,
+          "action": "reject"
+        },
+        {
+          "step": 11,
+          "completion_tokens": 36923,
+          "prompt_tokens": 851695,
+          "selection_hard": 0.845,
+          "prev_current_hard": 0.845,
+          "effect": 0.0,
+          "accepted": false,
+          "action": "reject"
+        },
+        {
+          "step": 40,
+          "completion_tokens": 36701,
+          "prompt_tokens": 1057082,
+          "selection_hard": 0.85,
+          "prev_current_hard": 0.875,
+          "effect": -0.025000000000000022,
+          "accepted": false,
+          "action": "reject"
+        },
+        {
+          "step": 22,
+          "completion_tokens": 36690,
+          "prompt_tokens": 885508,
+          "selection_hard": 0.835,
+          "prev_current_hard": 0.845,
+          "effect": -0.010000000000000009,
+          "accepted": false,
+          "action": "reject"
+        }
+      ],
+      "accepted_steps": [
+        {
+          "step": 1,
+          "completion_tokens": 28554,
+          "effect": 0.06999999999999995
+        },
+        {
+          "step": 2,
+          "completion_tokens": 30221,
+          "effect": 0.010000000000000009
+        },
+        {
+          "step": 4,
+          "completion_tokens": 31325,
+          "effect": 0.0050000000000000044
+        },
+        {
+          "step": 9,
+          "completion_tokens": 34699,
+          "effect": 0.0050000000000000044
+        },
+        {
+          "step": 26,
+          "completion_tokens": 31457,
+          "effect": 0.010000000000000009
+        },
+        {
+          "step": 30,
+          "completion_tokens": 34257,
+          "effect": 0.010000000000000009
+        },
+        {
+          "step": 37,
+          "completion_tokens": 34731,
+          "effect": 0.010000000000000009
+        }
+      ]
+    }
+  },
+  "migration": {
+    "total": 1400,
+    "counts": {
+      "both_correct": 1094,
+      "regressed": 17,
+      "improved": 117,
+      "both_wrong": 172
+    },
+    "soft_mean_delta": 0.03393379636236779,
+    "soft_improved_count": 123,
+    "soft_regressed_count": 27,
+    "soft_unchanged_count": 1250,
+    "improved_examples": [
+      {
+        "id": "33410f4502a141ba98c15b3972a2e11a",
+        "question": "Cure-all",
+        "gold_answers": [
+          "panacea"
+        ],
+        "baseline_prediction": "A remedy or solution for any illness or problem",
+        "best_prediction": "panacea",
+        "baseline_f1": 0.0,
+        "best_f1": 1.0
+      },
+      {
+        "id": "b10f01cf02e04443a3de620e24f5f86c",
+        "question": "The Ridgeline",
+        "gold_answers": [
+          "Honda"
+        ],
+        "baseline_prediction": "a sport utility truck by Honda",
+        "best_prediction": "Honda",
+        "baseline_f1": 0.33333333333333337,
+        "best_f1": 1.0
+      },
+      {
+        "id": "bd838a345ffe4ec9bf4cf009757b432d",
+        "question": "Lake Kissimmee",
+        "gold_answers": [
+          "Florida"
+        ],
+        "baseline_prediction": "A lake in Florida, about 15 miles east of Lake Wales",
+        "best_prediction": "Florida",
+        "baseline_f1": 0.18181818181818182,
+        "best_f1": 1.0
+      },
+      {
+        "id": "aa5ccdb669c54275a3ac03c724a4f2e9",
+        "question": "Mount Kilimanjaro",
+        "gold_answers": [
+          "Tanzania"
+        ],
+        "baseline_prediction": "Africa’s highest mountain, in Tanzania",
+        "best_prediction": "Tanzania",
+        "baseline_f1": 0.33333333333333337,
+        "best_f1": 1.0
+      },
+      {
+        "id": "113ef1dcda894e588b26f9e31a1be728",
+        "question": "Sons of the Tundra",
+        "gold_answers": [
+          "Northern Exposure"
+        ],
+        "baseline_prediction": "A Season 6 episode of Northern Exposure",
+        "best_prediction": "Northern Exposure",
+        "baseline_f1": 0.5,
+        "best_f1": 1.0
+      },
+      {
+        "id": "7472c5a21123400596962aec79a5e9b3",
+        "question": "A type of camera:TLR",
+        "gold_answers": [
+          "twin lens reflex",
+          "Twin Lens Reflex",
+          "Twin-lens reflex",
+          "Twin-Lens Reflex",
+          "Twin lens reflex",
+          "twin-lens reflex"
+        ],
+        "baseline_prediction": "Twin-lens reflex camera",
+        "best_prediction": "Twin-lens reflex",
+        "baseline_f1": 0.8,
+        "best_f1": 1.0
+      },
+      {
+        "id": "e6e6fdb13a5d482db07eef5e5c02d4f0",
+        "question": "Bomb,backfield,blitz",
+        "gold_answers": [
+          "football"
+        ],
+        "baseline_prediction": "American football terms",
+        "best_prediction": "football",
+        "baseline_f1": 0.5,
+        "best_f1": 1.0
+      },
+      {
+        "id": "00bae619959f47cb9b81cf3bacba0a38",
+        "question": "Wyoming:\"Equal\" these",
+        "gold_answers": [
+          "rights"
+        ],
+        "baseline_prediction": "Equal Rights state",
+        "best_prediction": "Rights",
+        "baseline_f1": 0.5,
+        "best_f1": 1.0
+      }
+    ],
+    "regressed_examples": [
+      {
+        "id": "295f574b0bd6480eaa67181d0f684dc5",
+        "question": "It precedes Bomba & Brea",
+        "gold_answers": [
+          "La"
+        ],
+        "baseline_prediction": "La",
+        "best_prediction": "Sol",
+        "baseline_f1": 1.0,
+        "best_f1": 0.0
+      },
+      {
+        "id": "d047dfa72f104317a4c1c0738089f3ff",
+        "question": "Bad, bad Leroy Brown was meaner than this kind of dog",
+        "gold_answers": [
+          "a junkyard dog"
+        ],
+        "baseline_prediction": "junkyard dog",
+        "best_prediction": "junkyard",
+        "baseline_f1": 1.0,
+        "best_f1": 0.6666666666666666
+      },
+      {
+        "id": "69cff2fb4eaf4a54af589d23d5f5e851",
+        "question": "Richard the Lionhearted had a favorite one of these minstrels named Blondel",
+        "gold_answers": [
+          "a troubadour"
+        ],
+        "baseline_prediction": "troubadour",
+        "best_prediction": "troubadours",
+        "baseline_f1": 1.0,
+        "best_f1": 0.0
+      },
+      {
+        "id": "f517a2fbdcd24448b12f40613cff19dc",
+        "question": "In 1922 Virginia Woolf wrote of his \"Ulysses\", \"Never have I read such tosh\"",
+        "gold_answers": [
+          "(James) Joyce"
+        ],
+        "baseline_prediction": "James Joyce",
+        "best_prediction": "Joyce",
+        "baseline_f1": 1.0,
+        "best_f1": 0.6666666666666666
+      },
+      {
+        "id": "33117d6f9f5e412788148baef55f4b2c",
+        "question": "Considered a national dish, feijoada comes from the Portuguese word for this legume",
+        "gold_answers": [
+          "beans"
+        ],
+        "baseline_prediction": "beans",
+        "best_prediction": "bean",
+        "baseline_f1": 1.0,
+        "best_f1": 0.0
+      },
+      {
+        "id": "5c63c75dfa8f4d4cad5bccf467ec9f9c",
+        "question": "The Montana Grizzlies are in this athletic conference, also a nickname for the state",
+        "gold_answers": [
+          "the Big Sky Conference"
+        ],
+        "baseline_prediction": "Big Sky Conference",
+        "best_prediction": "Big Sky",
+        "baseline_f1": 1.0,
+        "best_f1": 0.8
+      },
+      {
+        "id": "544b9ff112ec462cbc2365d4534f2877",
+        "question": "Some call them nuggets or tenders, but strips of chicken can also have this \"handy\" name",
+        "gold_answers": [
+          "chicken fingers"
+        ],
+        "baseline_prediction": "Chicken fingers",
+        "best_prediction": "fingers",
+        "baseline_f1": 1.0,
+        "best_f1": 0.6666666666666666
+      },
+      {
+        "id": "24faa13b2b7748f4babea2d6320d458e",
+        "question": "Lana Turner was nicknamed this kind of \"girl\" for a certain form-fitting garment she wore",
+        "gold_answers": [
+          "a sweater girl"
+        ],
+        "baseline_prediction": "Sweater Girl",
+        "best_prediction": "Sweater",
+        "baseline_f1": 1.0,
+        "best_f1": 0.6666666666666666
+      }
+    ]
+  }
+}

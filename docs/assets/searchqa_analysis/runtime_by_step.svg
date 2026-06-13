@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="650" viewBox="0 0 1180 650" role="img">
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+    .title { font-size: 26px; font-weight: 700; }
+    .subtitle { font-size: 15px; fill: #64748b; }
+    .axis { font-size: 13px; fill: #64748b; }
+    .label { font-size: 14px; fill: #0f172a; }
+    .small { font-size: 12px; fill: #64748b; }
+    .legend { font-size: 13px; fill: #0f172a; }
+  </style>
+  <rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="85" y="42" class="title">Wall time per training step</text>
+<text x="85" y="68" class="subtitle">Total run wall time 146.5 minutes; slow steps are usually evaluation or aggregation tails.</text>
+<rect x="85" y="105" width="1050" height="460" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+<line x1="85" y1="537.0" x2="1135" y2="537.0" stroke="#e2e8f0"/>
+<text x="73" y="541.0" text-anchor="end" class="axis">0s</text>
+<line x1="85" y1="423.4" x2="1135" y2="423.4" stroke="#e2e8f0"/>
+<text x="73" y="427.4" text-anchor="end" class="axis">100s</text>
+<line x1="85" y1="309.9" x2="1135" y2="309.9" stroke="#e2e8f0"/>
+<text x="73" y="313.9" text-anchor="end" class="axis">200s</text>
+<line x1="85" y1="196.3" x2="1135" y2="196.3" stroke="#e2e8f0"/>
+<text x="73" y="200.3" text-anchor="end" class="axis">300s</text>
+<line x1="85" y1="82.7" x2="1135" y2="82.7" stroke="#e2e8f0"/>
+<text x="73" y="86.7" text-anchor="end" class="axis">400s</text>
+<text x="85.0" y="590" text-anchor="middle" class="axis">1</text>
+<text x="219.6" y="590" text-anchor="middle" class="axis">6</text>
+<text x="354.2" y="590" text-anchor="middle" class="axis">11</text>
+<text x="488.8" y="590" text-anchor="middle" class="axis">16</text>
+<text x="623.5" y="590" text-anchor="middle" class="axis">21</text>
+<text x="758.1" y="590" text-anchor="middle" class="axis">26</text>
+<text x="892.7" y="590" text-anchor="middle" class="axis">31</text>
+<text x="1027.3" y="590" text-anchor="middle" class="axis">36</text>
+<rect x="73.1" y="336.1" width="23.9" height="228.9" rx="3" fill="#16a34a" opacity="0.82"/>
+<text x="85.0" y="328.1" text-anchor="middle" class="small">1</text>
+<rect x="100.0" y="383.7" width="23.9" height="181.3" rx="3" fill="#16a34a" opacity="0.82"/>
+<rect x="126.9" y="315.4" width="23.9" height="249.6" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="153.8" y="341.4" width="23.9" height="223.6" rx="3" fill="#16a34a" opacity="0.82"/>
+<rect x="180.8" y="293.7" width="23.9" height="271.3" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="207.7" y="354.2" width="23.9" height="210.8" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="234.6" y="329.7" width="23.9" height="235.3" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="261.5" y="301.5" width="23.9" height="263.5" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="288.5" y="275.7" width="23.9" height="289.3" rx="3" fill="#16a34a" opacity="0.82"/>
+<rect x="315.4" y="294.0" width="23.9" height="271.0" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="342.3" y="331.8" width="23.9" height="233.2" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="369.2" y="240.7" width="23.9" height="324.3" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="396.1" y="363.1" width="23.9" height="201.9" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="423.1" y="264.0" width="23.9" height="301.0" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="450.0" y="274.9" width="23.9" height="290.1" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="476.9" y="406.3" width="23.9" height="158.7" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="503.8" y="379.7" width="23.9" height="185.3" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="530.8" y="257.1" width="23.9" height="307.9" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="557.7" y="354.0" width="23.9" height="211.0" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="584.6" y="435.5" width="23.9" height="129.5" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="611.5" y="258.4" width="23.9" height="306.6" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="638.5" y="296.9" width="23.9" height="268.1" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="665.4" y="376.8" width="23.9" height="188.2" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="692.3" y="280.3" width="23.9" height="284.7" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="719.2" y="105.0" width="23.9" height="460.0" rx="3" fill="#2563eb" opacity="0.82"/>
+<text x="731.2" y="97.0" text-anchor="middle" class="small">25</text>
+<rect x="746.1" y="367.6" width="23.9" height="197.4" rx="3" fill="#16a34a" opacity="0.82"/>
+<rect x="773.1" y="396.7" width="23.9" height="168.3" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="800.0" y="372.4" width="23.9" height="192.6" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="826.9" y="293.6" width="23.9" height="271.4" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="853.8" y="334.7" width="23.9" height="230.3" rx="3" fill="#16a34a" opacity="0.82"/>
+<rect x="880.8" y="222.1" width="23.9" height="342.9" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="907.7" y="192.6" width="23.9" height="372.4" rx="3" fill="#2563eb" opacity="0.82"/>
+<text x="919.6" y="184.6" text-anchor="middle" class="small">32</text>
+<rect x="934.6" y="347.6" width="23.9" height="217.4" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="961.5" y="414.2" width="23.9" height="150.8" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="988.5" y="226.6" width="23.9" height="338.4" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="1015.4" y="275.8" width="23.9" height="289.2" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="1042.3" y="351.2" width="23.9" height="213.8" rx="3" fill="#16a34a" opacity="0.82"/>
+<text x="1054.2" y="343.2" text-anchor="middle" class="small">37</text>
+<rect x="1069.2" y="272.5" width="23.9" height="292.5" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="1096.1" y="264.4" width="23.9" height="300.6" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="1123.1" y="326.5" width="23.9" height="238.5" rx="3" fill="#2563eb" opacity="0.82"/>
+<rect x="820" y="131" width="300" height="205" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+<text x="838" y="159" class="label">Step-loop timing totals</text>
+<text x="838" y="193" class="small">evaluate</text>
+<rect x="938" y="183" width="150.0" height="13" rx="3" fill="#f97316" opacity="0.80"/>
+<text x="1096" y="193" text-anchor="end" class="small">44.9m</text>
+<text x="838" y="217" class="small">reflect</text>
+<rect x="938" y="207" width="129.4" height="13" rx="3" fill="#f97316" opacity="0.80"/>
+<text x="1096" y="217" text-anchor="end" class="small">38.7m</text>
+<text x="838" y="241" class="small">aggregate</text>
+<rect x="938" y="231" width="80.0" height="13" rx="3" fill="#f97316" opacity="0.80"/>
+<text x="1096" y="241" text-anchor="end" class="small">23.9m</text>
+<text x="838" y="265" class="small">select</text>
+<rect x="938" y="255" width="48.6" height="13" rx="3" fill="#f97316" opacity="0.80"/>
+<text x="1096" y="265" text-anchor="end" class="small">14.5m</text>
+<text x="838" y="289" class="small">rollout</text>
+<rect x="938" y="279" width="32.3" height="13" rx="3" fill="#f97316" opacity="0.80"/>
+<text x="1096" y="289" text-anchor="end" class="small">9.7m</text>
+<text x="838" y="313" class="small">update</text>
+<rect x="938" y="303" width="0.0" height="13" rx="3" fill="#f97316" opacity="0.80"/>
+<text x="1096" y="313" text-anchor="end" class="small">0.0m</text>
+</svg>

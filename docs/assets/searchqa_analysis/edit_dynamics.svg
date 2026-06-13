@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="620" viewBox="0 0 1080 620" role="img">
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+    .title { font-size: 26px; font-weight: 700; }
+    .subtitle { font-size: 15px; fill: #64748b; }
+    .axis { font-size: 13px; fill: #64748b; }
+    .label { font-size: 14px; fill: #0f172a; }
+    .small { font-size: 12px; fill: #64748b; }
+    .legend { font-size: 13px; fill: #0f172a; }
+  </style>
+  <rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="85" y="42" class="title">Skill growth and edit budget</text>
+<text x="85" y="68" class="subtitle">The skill grows early, then late accepts come from fewer selected edits under a smaller budget.</text>
+<rect x="85" y="95" width="935" height="440" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+<line x1="85" y1="515.0" x2="1020" y2="515.0" stroke="#e2e8f0"/>
+<text x="73" y="519.0" text-anchor="end" class="axis">0k</text>
+<line x1="85" y1="383.2" x2="1020" y2="383.2" stroke="#e2e8f0"/>
+<text x="73" y="387.2" text-anchor="end" class="axis">4k</text>
+<line x1="85" y1="251.4" x2="1020" y2="251.4" stroke="#e2e8f0"/>
+<text x="73" y="255.4" text-anchor="end" class="axis">8k</text>
+<line x1="85" y1="119.6" x2="1020" y2="119.6" stroke="#e2e8f0"/>
+<text x="73" y="123.6" text-anchor="end" class="axis">12k</text>
+<text x="85.0" y="560" text-anchor="middle" class="axis">1</text>
+<text x="204.9" y="560" text-anchor="middle" class="axis">6</text>
+<text x="324.7" y="560" text-anchor="middle" class="axis">11</text>
+<text x="444.6" y="560" text-anchor="middle" class="axis">16</text>
+<text x="564.5" y="560" text-anchor="middle" class="axis">21</text>
+<text x="684.4" y="560" text-anchor="middle" class="axis">26</text>
+<text x="804.2" y="560" text-anchor="middle" class="axis">31</text>
+<text x="924.1" y="560" text-anchor="middle" class="axis">36</text>
+<polyline points="85.0,427.7 109.0,379.9 132.9,379.9 156.9,311.4 180.9,311.4 204.9,311.4 228.8,311.4 252.8,311.4 276.8,238.6 300.8,238.6 324.7,236.9 348.7,236.9 372.7,236.9 396.7,236.9 420.6,236.9 444.6,236.9 468.6,236.9 492.6,236.9 516.5,236.9 540.5,236.9 564.5,197.3 588.5,197.3 612.4,197.3 636.4,197.3 660.4,197.3 684.4,160.9 708.3,160.9 732.3,160.9 756.3,160.9 780.3,139.6 804.2,113.5 828.2,113.5 852.2,113.5 876.2,113.5 900.1,113.5 924.1,113.5 948.1,95.0 972.1,95.0 996.0,95.0 1020.0,95.0" fill="none" stroke="#2563eb" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="80.0" y="473.5" width="10" height="61.5" rx="3" fill="#16a34a" opacity="0.72"/>
+<circle cx="85.0" cy="427.7" r="5.5" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+<rect x="104.0" y="453.0" width="10" height="82.0" rx="3" fill="#16a34a" opacity="0.72"/>
+<circle cx="109.0" cy="379.9" r="5.5" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+<rect x="127.9" y="453.0" width="10" height="82.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="151.9" y="453.0" width="10" height="82.0" rx="3" fill="#16a34a" opacity="0.72"/>
+<circle cx="156.9" cy="311.4" r="5.5" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+<rect x="175.9" y="453.0" width="10" height="82.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="199.9" y="453.0" width="10" height="82.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="223.8" y="453.0" width="10" height="82.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="247.8" y="453.0" width="10" height="82.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="271.8" y="453.0" width="10" height="82.0" rx="3" fill="#16a34a" opacity="0.72"/>
+<circle cx="276.8" cy="238.6" r="5.5" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+<rect x="295.8" y="453.0" width="10" height="82.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="319.7" y="453.0" width="10" height="82.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="343.7" y="453.0" width="10" height="82.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="367.7" y="453.0" width="10" height="82.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="391.7" y="473.5" width="10" height="61.5" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="415.6" y="473.5" width="10" height="61.5" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="439.6" y="473.5" width="10" height="61.5" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="463.6" y="514.5" width="10" height="20.5" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="487.6" y="473.5" width="10" height="61.5" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="511.5" y="473.5" width="10" height="61.5" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="535.5" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="559.5" y="473.5" width="10" height="61.5" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="583.5" y="473.5" width="10" height="61.5" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="607.4" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="631.4" y="473.5" width="10" height="61.5" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="655.4" y="473.5" width="10" height="61.5" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="679.4" y="473.5" width="10" height="61.5" rx="3" fill="#16a34a" opacity="0.72"/>
+<circle cx="684.4" cy="160.9" r="5.5" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+<rect x="703.3" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="727.3" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="751.3" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="775.3" y="494.0" width="10" height="41.0" rx="3" fill="#16a34a" opacity="0.72"/>
+<circle cx="780.3" cy="139.6" r="5.5" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+<rect x="799.2" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="823.2" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="847.2" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="871.2" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="895.1" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="919.1" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="943.1" y="494.0" width="10" height="41.0" rx="3" fill="#16a34a" opacity="0.72"/>
+<circle cx="948.1" cy="95.0" r="5.5" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+<rect x="967.1" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="991.0" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<rect x="1015.0" y="494.0" width="10" height="41.0" rx="3" fill="#f97316" opacity="0.72"/>
+<text x="85.0" y="417.7" text-anchor="middle" class="small">2,649</text>
+<text x="300.8" y="228.6" text-anchor="middle" class="small">8,387</text>
+<text x="540.5" y="226.9" text-anchor="middle" class="small">8,440</text>
+<text x="780.3" y="129.6" text-anchor="middle" class="small">11,394</text>
+<text x="1020.0" y="85.0" text-anchor="middle" class="small">12,746</text>
+<text x="705" y="570" class="legend">blue line: accepted/current skill length; bars: selected edits per candidate</text>
+</svg>

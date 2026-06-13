@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560" role="img">
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0f172a; }
+    .title { font-size: 26px; font-weight: 700; }
+    .subtitle { font-size: 15px; fill: #64748b; }
+    .axis { font-size: 13px; fill: #64748b; }
+    .label { font-size: 14px; fill: #0f172a; }
+    .small { font-size: 12px; fill: #64748b; }
+    .legend { font-size: 13px; fill: #0f172a; }
+  </style>
+  <rect width="100%" height="100%" fill="#f8fafc"/>
+<text x="90" y="42" class="title">Validation gate acceptance by epoch</text>
+<text x="90" y="68" class="subtitle">Only 7 of 40 candidates were accepted; the gate became more selective as the best score rose.</text>
+<rect x="90" y="95" width="830" height="380" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+<line x1="90" y1="475.0" x2="920" y2="475.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78" y="479.0" text-anchor="end" class="axis">0</text>
+<line x1="90" y1="405.0" x2="920" y2="405.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78" y="409.0" text-anchor="end" class="axis">2</text>
+<line x1="90" y1="335.0" x2="920" y2="335.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78" y="339.0" text-anchor="end" class="axis">4</text>
+<line x1="90" y1="265.0" x2="920" y2="265.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78" y="269.0" text-anchor="end" class="axis">6</text>
+<line x1="90" y1="195.0" x2="920" y2="195.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78" y="199.0" text-anchor="end" class="axis">8</text>
+<line x1="90" y1="125.0" x2="920" y2="125.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="78" y="129.0" text-anchor="end" class="axis">10</text>
+<rect x="150.8" y="335.0" width="86" height="140.0" rx="5" fill="#16a34a"/>
+<rect x="150.8" y="125.0" width="86" height="210.0" rx="5" fill="#dc2626" opacity="0.83"/>
+<text x="193.8" y="410.0" text-anchor="middle" class="label" style="fill:#ffffff">4</text>
+<text x="193.8" y="235.0" text-anchor="middle" class="label" style="fill:#ffffff">6</text>
+<text x="193.8" y="520" text-anchor="middle" class="axis">Epoch 1</text>
+<text x="193.8" y="411.0" text-anchor="middle" class="small">0.845</text>
+<rect x="358.2" y="475.0" width="86" height="0.0" rx="5" fill="#16a34a"/>
+<rect x="358.2" y="125.0" width="86" height="350.0" rx="5" fill="#dc2626" opacity="0.83"/>
+<text x="401.2" y="480.0" text-anchor="middle" class="label" style="fill:#ffffff">0</text>
+<text x="401.2" y="305.0" text-anchor="middle" class="label" style="fill:#ffffff">10</text>
+<text x="401.2" y="520" text-anchor="middle" class="axis">Epoch 2</text>
+<text x="401.2" y="411.0" text-anchor="middle" class="small">0.845</text>
+<rect x="565.8" y="405.0" width="86" height="70.0" rx="5" fill="#16a34a"/>
+<rect x="565.8" y="125.0" width="86" height="280.0" rx="5" fill="#dc2626" opacity="0.83"/>
+<text x="608.8" y="445.0" text-anchor="middle" class="label" style="fill:#ffffff">2</text>
+<text x="608.8" y="270.0" text-anchor="middle" class="label" style="fill:#ffffff">8</text>
+<text x="608.8" y="520" text-anchor="middle" class="axis">Epoch 3</text>
+<text x="608.8" y="204.3" text-anchor="middle" class="small">0.865</text>
+<rect x="773.2" y="440.0" width="86" height="35.0" rx="5" fill="#16a34a"/>
+<rect x="773.2" y="125.0" width="86" height="315.0" rx="5" fill="#dc2626" opacity="0.83"/>
+<text x="816.2" y="462.5" text-anchor="middle" class="label" style="fill:#ffffff">1</text>
+<text x="816.2" y="287.5" text-anchor="middle" class="label" style="fill:#ffffff">9</text>
+<text x="816.2" y="520" text-anchor="middle" class="axis">Epoch 4</text>
+<text x="816.2" y="101.0" text-anchor="middle" class="small">0.875</text>
+<polyline points="193.8,425.0 401.2,425.0 608.8,218.3 816.2,115.0" fill="none" stroke="#2563eb" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="193.8" cy="425.0" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="2"/>
+<circle cx="401.2" cy="425.0" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="2"/>
+<circle cx="608.8" cy="218.3" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="2"/>
+<circle cx="816.2" cy="115.0" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="2"/>
+<rect x="630" y="492" width="16" height="16" rx="3" fill="#16a34a"/>
+<text x="652" y="505" class="legend">accepted</text>
+<rect x="740" y="492" width="16" height="16" rx="3" fill="#dc2626" opacity="0.83"/>
+<text x="762" y="505" class="legend">rejected</text>
+<line x1="845" y1="500" x2="875" y2="500" stroke="#2563eb" stroke-width="3"/>
+<text x="885" y="505" class="legend">epoch-end best</text>
+</svg>
