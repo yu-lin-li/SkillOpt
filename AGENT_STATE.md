@@ -2,6 +2,9 @@
 
 ## Latest Completed Work
 
+- 2026-06-14 CST: Updated the SearchQA no-skill baseline runner to use the
+  explicit `scripts/eval_only.py --no-skill` flag instead of creating an
+  `empty_skill.md` artifact or relying on a deliberately missing path.
 - 2026-06-14 CST: Materialized the full SkillsBench pilot split into
   `data/skillsbench_split/` and switched
   `configs/skillsbench/full_claude_pilot.yaml` to `split_mode: split_dir`.

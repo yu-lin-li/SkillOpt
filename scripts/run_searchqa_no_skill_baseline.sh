@@ -64,23 +64,19 @@ fi
 # Check the key without passing it on the CLI, so output configs do not record it.
 : "${AZURE_OPENAI_API_KEY:?AZURE_OPENAI_API_KEY is not set}"
 
-mkdir -p "${OUT_ROOT}"
-EMPTY_SKILL="${OUT_ROOT}/empty_skill.md"
-: > "${EMPTY_SKILL}"
-
 echo "============================================================"
 echo "  SkillOpt — SearchQA No-Skill Baseline"
 echo "============================================================"
 echo "  Optimizer:  ${OPTIMIZER_MODEL}"
 echo "  Target:     ${TARGET_MODEL}"
 echo "  Split:      ${SPLIT}"
-echo "  Empty skill:${EMPTY_SKILL}"
+echo "  Skill:      blank (--no-skill)"
 echo "  Out root:   ${OUT_ROOT}"
 echo "============================================================"
 
 uv run python scripts/eval_only.py \
     --config configs/searchqa/default.yaml \
-    --skill "${EMPTY_SKILL}" \
+    --no-skill \
     --split "${SPLIT}" \
     --azure_openai_endpoint "${AZURE_OPENAI_ENDPOINT:?AZURE_OPENAI_ENDPOINT is not set}" \
     --azure_openai_auth_mode "${AZURE_OPENAI_AUTH_MODE:?AZURE_OPENAI_AUTH_MODE is not set}" \

@@ -9,6 +9,9 @@ Usage
         --split_dir /path/to/split \
         --out_root outputs/eval_skill0
 
+Pass `--no-skill` to run a blank-skill baseline without creating an empty skill
+artifact.
+
 All YAML keys can be overridden from the CLI, same as train.py.
 """
 from __future__ import annotations
@@ -129,8 +132,12 @@ _BOOL = lambda x: str(x).lower() in ("true", "1", "yes")  # noqa: E731
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="SkillOpt eval-only")
     p.add_argument("--config", type=str, required=True)
-    p.add_argument("--skill", type=str, required=True,
-                   help="Path to skill .md file to evaluate")
+    skill_group = p.add_mutually_exclusive_group()
+    skill_group.add_argument("--skill", type=str,
+                             help="Path to skill .md file to evaluate")
+    skill_group.add_argument("--no-skill", "--no_skill", dest="no_skill",
+                             action="store_true",
+                             help="Evaluate with a blank skill")
     p.add_argument("--split", type=str, default="all",
                    help="Which split to eval: train/valid_seen/valid_unseen/all (default: all)")
     p.add_argument("--cfg-options", nargs="+", default=[],
@@ -349,11 +356,24 @@ def main() -> None:
     out_root = cfg["out_root"]
     os.makedirs(out_root, exist_ok=True)
 
-    # Load skill
-    skill_path = os.path.abspath(args.skill)
-    with open(skill_path) as f:
-        skill_content = f.read()
-    print(f"  [skill] {skill_path} ({len(skill_content)} chars)")
+    # Load skill. `--no-skill` is the explicit blank-skill baseline path.
+    if args.no_skill:
+        skill_path = ""
+        skill_content = ""
+        skill_source = "blank_no_skill_flag"
+        print("  [skill] --no-skill — evaluating blank skill")
+    else:
+        raw_skill_path = str(args.skill or cfg.get("skill_init") or "").strip()
+        skill_path = os.path.abspath(raw_skill_path) if raw_skill_path else ""
+        if skill_path and os.path.exists(skill_path):
+            with open(skill_path) as f:
+                skill_content = f.read()
+            skill_source = "file"
+            print(f"  [skill] {skill_path} ({len(skill_content)} chars)")
+        else:
+            skill_content = ""
+            skill_source = "blank_missing_file"
+            print("  [skill] no skill file — evaluating blank skill")
 
     # Configure models
     configure_azure_openai(
@@ -451,6 +471,8 @@ def main() -> None:
     # Save summary
     summary = {
         "skill": skill_path,
+        "skill_source": skill_source,
+        "skill_chars": len(skill_content),
         "split": split,
         "n_items": len(results),
         "hard": hard,

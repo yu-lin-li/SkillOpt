@@ -215,7 +215,7 @@ Key artifacts:
 - [results.jsonl](outputs/searchqa_no_skill_baseline_gpt-5.5_20260606_160335/results.jsonl)
   contains the 1400 per-example results.
 - [empty_skill.md](outputs/searchqa_no_skill_baseline_gpt-5.5_20260606_160335/empty_skill.md)
-  is the zero-byte skill file used for this run.
+  is the zero-byte skill file used for the completed 2026-06-06 run.
 
 Issue resolution: the first launch failed before evaluation because the new
 runner expanded an empty bash array under `set -u`; no evaluation result from
@@ -224,8 +224,11 @@ that failed timestamped output was used. The runner was fixed, checked with
 
 ### No-Skill Baseline Notes
 
-- This baseline uses a zero-byte `empty_skill.md`, not
+- The completed 2026-06-06 baseline used a zero-byte `empty_skill.md`, not
   `skillopt/envs/searchqa/skills/initial.md`.
+- Current `scripts/run_searchqa_no_skill_baseline.sh` no longer creates that
+  file. It calls `scripts/eval_only.py --no-skill`, which explicitly evaluates
+  a blank skill.
 - The purpose is to isolate the effect of removing skill instructions while
   keeping the SearchQA split and target model comparable to the previous full
   training run.
