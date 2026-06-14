@@ -2,6 +2,11 @@
 
 ## Latest Completed Work
 
+- 2026-06-14 CST: Materialized the full SkillsBench pilot split into
+  `data/skillsbench_split/` and switched
+  `configs/skillsbench/full_claude_pilot.yaml` to `split_mode: split_dir`.
+  Formal runs now load the fixed 18/9/61 task-ID split instead of rebuilding a
+  seed=42 ratio split at setup time.
 - 2026-06-14 CST: Removed the obsolete single-category SkillsBench entry
   points and filtering path. The `skillsbench` dataloader now always loads the
   full benchmark, uses deterministic `stratify_by=category` splits, writes
@@ -39,9 +44,11 @@ with one shared evolving skill.
 
 - 2026-06-14 CST: The active pilot config is now
   `configs/skillsbench/full_claude_pilot.yaml`. It loads all 88 tasks from
-  `/Users/liyulin/projects/skillsbench/tasks` and creates a deterministic
-  seed=42, `2:1:7`, `stratify_by=category` split:
-  train=18, validation=9, test=61.
+  `/Users/liyulin/projects/skillsbench/tasks` and reads the fixed
+  `data/skillsbench_split/` split: train=18, validation=9, test=61. The
+  split provenance remains recorded in
+  `data/skillsbench_split/split_manifest.json` as seed=42, `2:1:7`,
+  `stratify_by=category`.
 - 2026-06-14 04:53 CST: The first launch completed but is invalid. No Claude
   task execution or optimizer reflection actually ran: BenchFlow returned
   `ANTHROPIC_API_KEY required...`, and SkillOpt reflection/slow/meta updates
@@ -61,11 +68,12 @@ with one shared evolving skill.
   skills.
 - Evolve one shared skill for the whole SkillsBench benchmark, not one skill
   per category or task.
-- Use SkillsBench `[metadata].category` only for stratified splitting and
-  reporting.
-- Split all SkillsBench tasks with `seed=42`,
-  `train:validation:test=2:1:7`, and `stratify_by=category`, which gives
-  `18/9/61` over 88 tasks.
+- Use SkillsBench `[metadata].category` for the fixed split provenance and
+  category-level reporting, not for separate skills.
+- Use the fixed repo split at `data/skillsbench_split/` for SkillsBench
+  experiments. It was generated from all SkillsBench tasks with `seed=42`,
+  `train:validation:test=2:1:7`, and `stratify_by=category`, giving `18/9/61`
+  over 88 tasks.
 - Use `claude-agent-acp` for target rollouts through BenchFlow Python API.
 - Keep SkillOpt optimizer/reflection on the current SkillOpt configuration.
 - Initialize the benchmark skill with SkillOpt's existing empty-rule style:
@@ -110,8 +118,12 @@ with one shared evolving skill.
   passed after removing the single-category compatibility path.
 - `bash -n scripts/run_skillsbench_claude_pilot.sh` passed.
 - Config/adapter smoke with dummy auth passed for
-  `configs/skillsbench/full_claude_pilot.yaml`, confirming there is no
-  `domain` config key and `stratify_by=category`, train=18, val=9, test=61.
+  `configs/skillsbench/full_claude_pilot.yaml`, confirming it now uses
+  `split_mode=split_dir`, `split_dir=data/skillsbench_split`, train=18,
+  val=9, test=61, and records the source split manifest in the run artifact.
+- Fixed split JSON parse passed for
+  `data/skillsbench_split/train/items.json`, `val/items.json`,
+  `test/items.json`, and `split_manifest.json`.
 - Shadow-task smoke on `dialogue-parser` confirmed `environment/skills` is
   removed.
 - Skill-pack smoke confirmed `skillopt-target/SKILL.md` is generated with

@@ -23,6 +23,8 @@ data/*
 !data/spreadsheetbench_id_split/**
 !data/alfworld_path_split/
 !data/alfworld_path_split/**
+!data/skillsbench_split/
+!data/skillsbench_split/**
 outputs/
 logs/
 external/

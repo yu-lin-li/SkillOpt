@@ -31,10 +31,8 @@ env:
   name: skillsbench
   skill_init: skillopt/envs/skillsbench/skills/initial.md
   skillsbench_root: /Users/liyulin/projects/skillsbench
-  split_mode: ratio
-  split_ratio: "2:1:7"
-  split_seed: 42
-  stratify_by: category
+  split_mode: split_dir
+  split_dir: data/skillsbench_split
   skillsbench_agent: claude-agent-acp
   skillsbench_model: claude-haiku-4-5-20251001
   skillsbench_sandbox: docker

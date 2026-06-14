@@ -34,18 +34,22 @@ Each `items.json` contains only stable IDs or source-path hints.
 | `officeqa_id_split/` | OfficeQA | 50 / 24 / 172 | OfficeQA Full | [databricks/officeqa](https://huggingface.co/datasets/databricks/officeqa) | `data/officeqa_split` |
 | `spreadsheetbench_id_split/` | SpreadsheetBench | 80 / 40 / 280 | SpreadsheetBench Verified 400 | [KAKA22/SpreadsheetBench](https://huggingface.co/datasets/KAKA22/SpreadsheetBench) | `data/spreadsheetbench_split` |
 | `alfworld_path_split/` | ALFWorld | 39 / 18 / 134 | ALFWorld `json_2.1.1` paths | [alfworld/alfworld](https://github.com/alfworld/alfworld) | `data/alfworld_path_split` |
+| `skillsbench_split/` | SkillsBench | 18 / 9 / 61 | Full local SkillsBench `tasks/` registry | `/Users/liyulin/projects/skillsbench/tasks` | `data/skillsbench_split` |
 
 Counts are ordered as train / val / test.
 
 ## Direct Use
 
-Only `alfworld_path_split/` can be used directly as `--split_dir` from this
-release, because the ALFWorld loader reads `gamefile` and `task_type` from the
-split items.
+Only `alfworld_path_split/` and `skillsbench_split/` can be used directly as
+`--split_dir` from this release. The ALFWorld loader reads `gamefile` and
+`task_type` from the split items; the SkillsBench loader resolves task IDs
+against the configured `skillsbench_root`.
 
 This does not mean the ALFWorld raw data is included. You still need to
 download ALFWorld separately with `alfworld-download` and set `$ALFWORLD_DATA`
 to the data root containing `json_2.1.1`.
+For SkillsBench, keep `skillsbench_root` pointed at a local SkillsBench
+checkout containing the referenced `tasks/` directories.
 
 The other manifest directories are lookup manifests. They intentionally omit
 full example fields such as questions, answers, contexts, images, or task
@@ -65,6 +69,7 @@ the raw data has been downloaded or otherwise made available:
 | OfficeQA | Match `uid` in `officeqa_full.csv`; `source_files` and `source_docs` identify the supporting document. |
 | SpreadsheetBench | Match `id`; `spreadsheet_path` identifies the referenced spreadsheet directory. |
 | ALFWorld | Resolve `gamefile` relative to `$ALFWORLD_DATA`. |
+| SkillsBench | Match `train/items.json` / `val/items.json` / `test/items.json` task IDs to subdirectories under the configured `skillsbench_root/tasks`. |
 
 ## Manifest Item Examples
 

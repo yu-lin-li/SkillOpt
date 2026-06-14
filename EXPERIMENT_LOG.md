@@ -467,6 +467,7 @@ or provider endpoint strings appear in the resulting artifacts.
 
 | Date/Time | Experiment | Goal | Scope | Status |
 | --- | --- | --- | --- | --- |
+| 2026-06-14 12:24 CST | SkillsBench fixed split materialization | Store the full-benchmark SkillsBench train/validation/test split as a repo input so formal runs do not rebuild it. | Generated `data/skillsbench_split/` from the existing seed=42, 2:1:7, category-stratified logic; switched the pilot config to `split_mode=split_dir`; dummy-auth adapter setup only. | Split fixed |
 | 2026-06-14 CST | SkillsBench single-category cleanup | Remove obsolete single-domain compatibility files and filtering logic after adopting full-benchmark training. | Deleted legacy config/runner/initial skill; simplified dataloader/adapter to always load all tasks. | Cleanup implemented |
 | 2026-06-14 CST | SkillsBench full-benchmark SkillOpt pilot split migration | Evolve one shared SkillOpt skill over all SkillsBench tasks instead of per-category skills. | Config/code migration; dummy-auth adapter setup only; no real Claude/BenchFlow rollout launched. | Scaffold updated |
 | 2026-06-14 04:53 CST | SkillsBench software-engineering Claude pilot run | Run the validation-gated SkillOpt pilot using SkillsBench tasks and `claude-agent-acp`. | Train=3, validation=2, test disabled; output `outputs/skillsbench_software_engineering_claude_pilot_20260614_045337`. | Invalid: missing auth/env |
@@ -490,10 +491,13 @@ Invalid launch result:
 Configuration decisions:
 - Active pilot scope is the full SkillsBench task set.
 - Evolve one shared skill for all categories. SkillsBench
-  `[metadata].category` is used for `stratify_by=category` and reporting, not
+  `[metadata].category` is used for fixed split provenance and reporting, not
   for separate skills.
-- Split uses `seed=42` and `train:validation:test=2:1:7`, yielding train=18,
-  validation=9, test=61 over 88 tasks.
+- Formal runs now load the fixed repo split at
+  [data/skillsbench_split](data/skillsbench_split). That split was generated
+  once with `seed=42`, `train:validation:test=2:1:7`, and
+  `stratify_by=category`, yielding train=18, validation=9, test=61 over
+  88 tasks.
 - Training split category counts are cybersecurity=1, finance-economics=2,
   industrial-physical-systems=3, mathematics-or-formal-reasoning=2,
   media-content-production=1, natural-science=3, office-white-collar=3,
@@ -511,8 +515,10 @@ Implemented artifacts:
   SkillOpt's existing rollout/reflect contract and reports the discovered
   SkillsBench categories as task types after setup.
 - [dataloader.py](skillopt/envs/skillsbench/dataloader.py) discovers
-  the full SkillsBench task set, writes deterministic split manifests, and
-  records per-split category counts.
+  the full SkillsBench task set, reads fixed task-ID split files, writes run
+  split provenance manifests, and records per-split category counts.
+- [data/skillsbench_split](data/skillsbench_split) stores the fixed
+  SkillsBench task-ID split and provenance manifest used by the active pilot.
 - [rollout.py](skillopt/envs/skillsbench/rollout.py) creates clean shadow
   tasks, removes curated `environment/skills`, generates the runtime
   `skillopt-target` skill pack, invokes BenchFlow `Rollout`, and converts
@@ -539,8 +545,11 @@ Validation:
   requires Anthropic auth` when the launch shell lacks Claude credentials.
 - Config/adapter smoke with dummy auth confirmed
   `configs/skillsbench/full_claude_pilot.yaml` resolves to
-  no `domain` config key, `stratify_by=category`, train=18, validation=9,
-  test=61.
+  no `domain` config key, `split_mode=split_dir`,
+  `split_dir=data/skillsbench_split`, train=18, validation=9, test=61, and
+  run-artifact provenance copied from the fixed source manifest.
+- Fixed split JSON parse passed for `train/items.json`, `val/items.json`,
+  `test/items.json`, and `split_manifest.json`.
 - Shadow-task smoke confirmed curated task skills are removed.
 - Skill-pack smoke confirmed `skillopt-target/SKILL.md` frontmatter is
   generated.

@@ -1,0 +1,51 @@
+{
+  "source": "SkillsBench task IDs materialized from the local task registry.",
+  "skillsbench_root": "/Users/liyulin/projects/skillsbench",
+  "tasks_dir": "/Users/liyulin/projects/skillsbench/tasks",
+  "split_mode": "ratio",
+  "split_ratio": "2:1:7",
+  "split_seed": 42,
+  "stratify_by": "category",
+  "counts": {
+    "train": 18,
+    "val": 9,
+    "test": 61
+  },
+  "category_counts": {
+    "train": {
+      "cybersecurity": 1,
+      "finance-economics": 2,
+      "industrial-physical-systems": 3,
+      "mathematics-or-formal-reasoning": 2,
+      "media-content-production": 1,
+      "natural-science": 3,
+      "office-white-collar": 3,
+      "software-engineering": 3
+    },
+    "val": {
+      "cybersecurity": 1,
+      "finance-economics": 1,
+      "industrial-physical-systems": 1,
+      "mathematics-or-formal-reasoning": 1,
+      "media-content-production": 1,
+      "natural-science": 1,
+      "office-white-collar": 1,
+      "software-engineering": 2
+    },
+    "test": {
+      "cybersecurity": 5,
+      "finance-economics": 6,
+      "industrial-physical-systems": 10,
+      "mathematics-or-formal-reasoning": 5,
+      "media-content-production": 3,
+      "natural-science": 10,
+      "office-white-collar": 11,
+      "software-engineering": 11
+    }
+  },
+  "files": {
+    "train": "train/items.json",
+    "val": "val/items.json",
+    "test": "test/items.json"
+  }
+}

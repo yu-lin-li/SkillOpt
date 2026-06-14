@@ -122,6 +122,7 @@ class SkillsBenchDataLoader(BaseDataLoader):
         self.val_items: list[dict[str, Any]] = []
         self.test_items: list[dict[str, Any]] = []
         self._items_by_id: dict[str, dict[str, Any]] = {}
+        self._split_source_manifest: dict[str, Any] = {}
         self._out_root = ""
         self.categories: list[str] = []
 
@@ -142,6 +143,7 @@ class SkillsBenchDataLoader(BaseDataLoader):
         if self.split_mode == "ratio":
             self.train_items, self.val_items, self.test_items = self._build_ratio_split(items)
         elif self.split_mode == "split_dir":
+            self._split_source_manifest = self._load_split_manifest()
             self.train_items = self._load_split_file("train")
             self.val_items = self._load_split_file("val")
             self.test_items = self._load_split_file("test")
@@ -285,23 +287,43 @@ class SkillsBenchDataLoader(BaseDataLoader):
     def _load_split_file(self, name: str) -> list[dict[str, Any]]:
         if not self.split_dir:
             raise ValueError("split_dir is required when split_mode='split_dir'")
-        path = self.split_dir / f"{name}.json"
+        path = self.split_dir / name / "items.json"
         if not path.exists():
-            path = self.split_dir / f"{name}.jsonl"
+            path = self.split_dir / name / "items.jsonl"
         if not path.exists():
             raise FileNotFoundError(f"Missing SkillsBench split file: {path}")
         text = path.read_text(encoding="utf-8").strip()
         if not text:
             return []
         if path.suffix == ".jsonl":
-            ids = [json.loads(line)["id"] for line in text.splitlines() if line.strip()]
+            ids = [self._split_item_id(json.loads(line)) for line in text.splitlines() if line.strip()]
         else:
             data = json.loads(text)
-            ids = data if isinstance(data, list) else data.get("ids", [])
+            raw_items = data if isinstance(data, list) else data.get("ids", [])
+            ids = [self._split_item_id(item) for item in raw_items]
         missing = [task_id for task_id in ids if str(task_id) not in self._items_by_id]
         if missing:
             raise ValueError(f"Split {name!r} references unknown task ids: {missing}")
         return [self._items_by_id[str(task_id)] for task_id in ids]
+
+    @staticmethod
+    def _split_item_id(item: Any) -> str:
+        if isinstance(item, dict):
+            if "id" not in item:
+                raise ValueError(f"SkillsBench split item is missing id: {item!r}")
+            return str(item["id"])
+        return str(item)
+
+    def _load_split_manifest(self) -> dict[str, Any]:
+        if not self.split_dir:
+            raise ValueError("split_dir is required when split_mode='split_dir'")
+        path = self.split_dir / "split_manifest.json"
+        if not path.exists():
+            return {}
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError(f"SkillsBench split manifest must be a JSON object: {path}")
+        return data
 
     @staticmethod
     def _sample(items: list[dict[str, Any]], batch_size: int, seed: int) -> list[dict[str, Any]]:
@@ -322,9 +344,6 @@ class SkillsBenchDataLoader(BaseDataLoader):
         os.makedirs(output_dir, exist_ok=True)
         payload = {
             "split_mode": self.split_mode,
-            "split_ratio": self.split_ratio,
-            "split_seed": self.split_seed,
-            "stratify_by": self.stratify_by,
             "categories": self.categories,
             "counts": {
                 "train": len(self.train_items),
@@ -340,5 +359,17 @@ class SkillsBenchDataLoader(BaseDataLoader):
             "val": [item["id"] for item in self.val_items],
             "test": [item["id"] for item in self.test_items],
         }
+        if self.split_mode == "ratio":
+            payload.update(
+                {
+                    "split_ratio": self.split_ratio,
+                    "split_seed": self.split_seed,
+                    "stratify_by": self.stratify_by,
+                }
+            )
+        elif self.split_mode == "split_dir":
+            payload["split_dir"] = str(self.split_dir or "")
+            if self._split_source_manifest:
+                payload["source_split_manifest"] = self._split_source_manifest
         with open(os.path.join(output_dir, "split.json"), "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
