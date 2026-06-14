@@ -1,3 +1,0 @@
-# Compatibility alias for the original single-domain pilot path.
-# New SkillsBench experiments should use full_claude_pilot.yaml directly.
-_base_: full_claude_pilot.yaml

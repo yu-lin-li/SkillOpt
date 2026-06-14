@@ -467,6 +467,7 @@ or provider endpoint strings appear in the resulting artifacts.
 
 | Date/Time | Experiment | Goal | Scope | Status |
 | --- | --- | --- | --- | --- |
+| 2026-06-14 CST | SkillsBench single-category cleanup | Remove obsolete single-domain compatibility files and filtering logic after adopting full-benchmark training. | Deleted legacy config/runner/initial skill; simplified dataloader/adapter to always load all tasks. | Cleanup implemented |
 | 2026-06-14 CST | SkillsBench full-benchmark SkillOpt pilot split migration | Evolve one shared SkillOpt skill over all SkillsBench tasks instead of per-category skills. | Config/code migration; dummy-auth adapter setup only; no real Claude/BenchFlow rollout launched. | Scaffold updated |
 | 2026-06-14 04:53 CST | SkillsBench software-engineering Claude pilot run | Run the validation-gated SkillOpt pilot using SkillsBench tasks and `claude-agent-acp`. | Train=3, validation=2, test disabled; output `outputs/skillsbench_software_engineering_claude_pilot_20260614_045337`. | Invalid: missing auth/env |
 | 2026-06-14 CST | SkillsBench software-engineering SkillOpt pilot scaffold | Use SkillsBench tasks/verifiers while evolving SkillOpt's own domain skill, without SkillsBench human-curated skills. | Code/config implementation plus no-Docker smoke checks; no real Claude/BenchFlow agent rollout launched. | Scaffold implemented |
@@ -487,7 +488,7 @@ Invalid launch result:
   when Claude auth or the optimizer endpoint is missing.
 
 Configuration decisions:
-- Active pilot scope is now the full SkillsBench task set, `domain=all`.
+- Active pilot scope is the full SkillsBench task set.
 - Evolve one shared skill for all categories. SkillsBench
   `[metadata].category` is used for `stratify_by=category` and reporting, not
   for separate skills.
@@ -510,8 +511,8 @@ Implemented artifacts:
   SkillOpt's existing rollout/reflect contract and reports the discovered
   SkillsBench categories as task types after setup.
 - [dataloader.py](skillopt/envs/skillsbench/dataloader.py) discovers
-  SkillsBench tasks by scope, supports `domain=all`, writes deterministic
-  split manifests, and records per-split category counts.
+  the full SkillsBench task set, writes deterministic split manifests, and
+  records per-split category counts.
 - [rollout.py](skillopt/envs/skillsbench/rollout.py) creates clean shadow
   tasks, removes curated `environment/skills`, generates the runtime
   `skillopt-target` skill pack, invokes BenchFlow `Rollout`, and converts
@@ -521,26 +522,24 @@ Implemented artifacts:
   style rather than handwritten domain guidance.
 - [full_claude_pilot.yaml](configs/skillsbench/full_claude_pilot.yaml) is the
   active pilot config.
-- [software_engineering_claude_pilot.yaml](configs/skillsbench/software_engineering_claude_pilot.yaml)
-  remains as a compatibility alias to the full pilot config.
 - [run_skillsbench_claude_pilot.sh](scripts/run_skillsbench_claude_pilot.sh)
   is the formal launch runner.
-- [run_skillsbench_software_engineering_claude_pilot.sh](scripts/run_skillsbench_software_engineering_claude_pilot.sh)
-  remains as a compatibility wrapper to the full runner.
+- Obsolete single-category files were removed:
+  `configs/skillsbench/software_engineering_claude_pilot.yaml`,
+  `scripts/run_skillsbench_software_engineering_claude_pilot.sh`, and
+  `skillopt/envs/skillsbench/skills/software_engineering_initial.md`.
 
 Validation:
 - `bash -n scripts/run_skillsbench_claude_pilot.sh` passed.
-- `bash -n scripts/run_skillsbench_software_engineering_claude_pilot.sh`
-  passed.
 - `.venv/bin/python -m py_compile skillopt/envs/skillsbench/dataloader.py skillopt/envs/skillsbench/rollout.py skillopt/envs/skillsbench/adapter.py scripts/train.py`
-  passed after the full-benchmark split migration.
+  passed after removing the single-category compatibility path.
 - `.venv/bin/python -m py_compile skillopt/envs/skillsbench/adapter.py` passed
   after adding credential preflight.
 - Preflight smoke now stops before training with `SkillsBench claude-agent-acp
   requires Anthropic auth` when the launch shell lacks Claude credentials.
-- Config/adapter smoke with dummy auth confirmed both
-  `configs/skillsbench/full_claude_pilot.yaml` and the old compatibility alias
-  resolve to `domain=all`, `stratify_by=category`, train=18, validation=9,
+- Config/adapter smoke with dummy auth confirmed
+  `configs/skillsbench/full_claude_pilot.yaml` resolves to
+  no `domain` config key, `stratify_by=category`, train=18, validation=9,
   test=61.
 - Shadow-task smoke confirmed curated task skills are removed.
 - Skill-pack smoke confirmed `skillopt-target/SKILL.md` frontmatter is

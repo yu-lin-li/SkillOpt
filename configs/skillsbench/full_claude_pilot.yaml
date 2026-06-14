@@ -31,7 +31,6 @@ env:
   name: skillsbench
   skill_init: skillopt/envs/skillsbench/skills/initial.md
   skillsbench_root: /Users/liyulin/projects/skillsbench
-  domain: all
   split_mode: ratio
   split_ratio: "2:1:7"
   split_seed: 42

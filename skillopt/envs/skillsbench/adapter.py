@@ -18,7 +18,6 @@ class SkillsBenchAdapter(EnvAdapter):
     def __init__(
         self,
         skillsbench_root: str = "/Users/liyulin/projects/skillsbench",
-        domain: str = "all",
         tasks_dir: str = "",
         split_mode: str = "ratio",
         split_ratio: str = "2:1:7",
@@ -42,7 +41,6 @@ class SkillsBenchAdapter(EnvAdapter):
         skillsbench_agent_env: dict[str, str] | None = None,
     ) -> None:
         self.skillsbench_root = skillsbench_root
-        self.domain = domain
         self.skillsbench_agent = skillsbench_agent
         self.skillsbench_model = skillsbench_model or None
         self.skillsbench_sandbox = skillsbench_sandbox
@@ -57,7 +55,6 @@ class SkillsBenchAdapter(EnvAdapter):
         self.skillsbench_agent_env = dict(skillsbench_agent_env or {})
         self.dataloader = SkillsBenchDataLoader(
             skillsbench_root=skillsbench_root,
-            domain=domain,
             tasks_dir=tasks_dir,
             split_mode=split_mode,
             split_ratio=split_ratio,
@@ -140,7 +137,7 @@ class SkillsBenchAdapter(EnvAdapter):
     def get_task_types(self) -> list[str]:
         if getattr(self.dataloader, "categories", None):
             return list(self.dataloader.categories)
-        return [self.domain]
+        return ["skillsbench"]
 
     def _preflight_runtime_auth(self, cfg: dict) -> None:
         """Fail before producing invalid all-zero runs when credentials are absent."""

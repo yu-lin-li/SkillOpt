@@ -17,9 +17,6 @@ except ModuleNotFoundError:  # pragma: no cover - legacy interpreter fallback
 from skillopt.datasets.base import BaseDataLoader, BatchSpec
 
 
-_ALL_DOMAIN_ALIASES = {"", "all", "*", "full", "skillsbench"}
-
-
 def _compute_split_counts(
     total: int,
     ratio: tuple[int, int, int],
@@ -78,10 +75,6 @@ def _canonical_split(split: str) -> str:
     return aliases[split]
 
 
-def _include_all_domains(domain: str) -> bool:
-    return str(domain or "").strip().lower() in _ALL_DOMAIN_ALIASES
-
-
 def _normalize_stratify_by(value: str) -> str:
     raw = str(value or "").strip()
     if raw.lower() in {"", "none", "false", "0", "off"}:
@@ -105,7 +98,6 @@ class SkillsBenchDataLoader(BaseDataLoader):
     def __init__(
         self,
         skillsbench_root: str,
-        domain: str = "all",
         tasks_dir: str = "",
         split_mode: str = "ratio",
         split_ratio: str = "2:1:7",
@@ -117,7 +109,6 @@ class SkillsBenchDataLoader(BaseDataLoader):
         limit: int = 0,
     ) -> None:
         self.skillsbench_root = Path(skillsbench_root).expanduser()
-        self.domain = domain
         self.tasks_dir = Path(tasks_dir).expanduser() if tasks_dir else self.skillsbench_root / "tasks"
         self.split_mode = split_mode
         self.split_ratio = split_ratio
@@ -145,7 +136,7 @@ class SkillsBenchDataLoader(BaseDataLoader):
         if self.limit > 0:
             items = items[: self.limit]
         if not items:
-            raise ValueError(f"No SkillsBench tasks found for domain={self.domain!r}")
+            raise ValueError("No SkillsBench tasks found")
         self._items_by_id = {str(item["id"]): item for item in items}
         self.categories = sorted({str(item.get("category") or "unknown") for item in items})
         if self.split_mode == "ratio":
@@ -163,7 +154,6 @@ class SkillsBenchDataLoader(BaseDataLoader):
 
     def state_dict(self) -> dict[str, Any]:
         return {
-            "domain": self.domain,
             "stratify_by": self.stratify_by,
             "categories": self.categories,
             "category_counts": {
@@ -186,7 +176,6 @@ class SkillsBenchDataLoader(BaseDataLoader):
             batch_size=len(items),
             payload=items,
             metadata={
-                "domain": self.domain,
                 "stratify_by": self.stratify_by,
                 "categories": self.categories,
             },
@@ -213,7 +202,6 @@ class SkillsBenchDataLoader(BaseDataLoader):
             batch_size=len(items),
             payload=items,
             metadata={
-                "domain": self.domain,
                 "stratify_by": self.stratify_by,
                 "canonical_split": canonical,
                 "categories": self.categories,
@@ -222,13 +210,10 @@ class SkillsBenchDataLoader(BaseDataLoader):
 
     def _load_items(self) -> list[dict[str, Any]]:
         items: list[dict[str, Any]] = []
-        include_all = _include_all_domains(self.domain)
         for task_toml in sorted(self.tasks_dir.glob("*/task.toml")):
             raw = tomllib.loads(task_toml.read_text(encoding="utf-8"))
             metadata = raw.get("metadata") or {}
             category = str(metadata.get("category") or "")
-            if not include_all and category != self.domain:
-                continue
             task_dir = task_toml.parent
             instruction_path = task_dir / "instruction.md"
             instruction = instruction_path.read_text(encoding="utf-8") if instruction_path.exists() else ""
@@ -336,7 +321,6 @@ class SkillsBenchDataLoader(BaseDataLoader):
             output_dir = os.path.join(self._out_root, "skillsbench_split")
         os.makedirs(output_dir, exist_ok=True)
         payload = {
-            "domain": self.domain,
             "split_mode": self.split_mode,
             "split_ratio": self.split_ratio,
             "split_seed": self.split_seed,

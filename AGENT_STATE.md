@@ -2,14 +2,14 @@
 
 ## Latest Completed Work
 
-- 2026-06-14 CST: Migrated the SkillsBench pilot from a single
-  `software-engineering` category to one shared full-benchmark skill. The
-  `skillsbench` dataloader now supports `domain=all`, deterministic
-  `stratify_by=category` splits, per-split category manifests, and
-  category-level reporting while keeping one evolving skill. Added the full
-  pilot config at `configs/skillsbench/full_claude_pilot.yaml`, generic
-  initial skill at `skillopt/envs/skillsbench/skills/initial.md`, and formal
-  runner `scripts/run_skillsbench_claude_pilot.sh`.
+- 2026-06-14 CST: Removed the obsolete single-category SkillsBench entry
+  points and filtering path. The `skillsbench` dataloader now always loads the
+  full benchmark, uses deterministic `stratify_by=category` splits, writes
+  per-split category manifests, and reports category-level task types while
+  keeping one evolving skill. The active config is
+  `configs/skillsbench/full_claude_pilot.yaml`, the initial skill is
+  `skillopt/envs/skillsbench/skills/initial.md`, and the formal runner is
+  `scripts/run_skillsbench_claude_pilot.sh`.
 - 2026-06-14 CST: Implemented the first SkillsBench migration scaffold for
   SkillOpt: clean shadow task copies that remove SkillsBench curated
   `environment/skills`, runtime `skillopt-target` skill-pack generation,
@@ -107,14 +107,11 @@ with one shared evolving skill.
 - Preflight smoke now raises `SkillsBench claude-agent-acp requires Anthropic
   auth` before training when the shell lacks credentials.
 - `.venv/bin/python -m py_compile skillopt/envs/skillsbench/dataloader.py skillopt/envs/skillsbench/rollout.py skillopt/envs/skillsbench/adapter.py scripts/train.py`
-  passed after the full-benchmark split migration.
-- `bash -n scripts/run_skillsbench_claude_pilot.sh` and
-  `bash -n scripts/run_skillsbench_software_engineering_claude_pilot.sh`
-  passed.
-- Config/adapter smoke with dummy auth passed for both
-  `configs/skillsbench/full_claude_pilot.yaml` and the old compatibility
-  alias, confirming `domain=all`, `stratify_by=category`, train=18, val=9,
-  test=61.
+  passed after removing the single-category compatibility path.
+- `bash -n scripts/run_skillsbench_claude_pilot.sh` passed.
+- Config/adapter smoke with dummy auth passed for
+  `configs/skillsbench/full_claude_pilot.yaml`, confirming there is no
+  `domain` config key and `stratify_by=category`, train=18, val=9, test=61.
 - Shadow-task smoke on `dialogue-parser` confirmed `environment/skills` is
   removed.
 - Skill-pack smoke confirmed `skillopt-target/SKILL.md` is generated with
