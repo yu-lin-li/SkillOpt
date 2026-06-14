@@ -153,10 +153,10 @@ def _write_skill_pack(out_dir: Path, skill_content: str) -> Path:
     skill_md = render_skill_md(
         skill_content,
         name="skillopt-target",
-        description="Use this skill for SkillsBench software-engineering tasks.",
+        description="Use this skill for SkillsBench tasks.",
         preamble=(
             "Use this skill before solving the current SkillsBench task. "
-            "It contains the evolving SkillOpt guidance for this domain."
+            "It contains the evolving SkillOpt guidance for the benchmark."
         ),
     )
     (skill_dir / "SKILL.md").write_text(skill_md, encoding="utf-8")
@@ -261,7 +261,7 @@ def _to_skillopt_result(
     soft = float(reward) if reward is not None else 0.0
     hard = 1 if reward is not None and soft >= 1.0 and not error and not verifier_error else 0
     fail_reason = _fail_reason(error, verifier_error, reward)
-    task_type = str(item.get("subcategory") or item.get("difficulty") or item.get("category") or "unknown")
+    task_type = str(item.get("category") or item.get("subcategory") or item.get("difficulty") or "unknown")
     return {
         "id": str(item["id"]),
         "hard": hard,
@@ -390,4 +390,3 @@ def _clip(value: Any, max_chars: int = 4000) -> str:
 
 def _safe_id(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", value).strip("_") or "task"
-

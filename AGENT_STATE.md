@@ -2,14 +2,19 @@
 
 ## Latest Completed Work
 
-- 2026-06-14 CST: Implemented the first SkillsBench migration pilot for
-  SkillOpt. Added a `skillsbench` environment adapter, deterministic
-  `software-engineering` domain split support, clean shadow task copies that
-  remove SkillsBench curated `environment/skills`, runtime `skillopt-target`
-  skill-pack generation, BenchFlow Python `Rollout` integration, and a pilot
-  config at `configs/skillsbench/software_engineering_claude_pilot.yaml`.
-  No real Claude/BenchFlow agent rollout was launched; only static and
-  no-Docker smoke checks were run.
+- 2026-06-14 CST: Migrated the SkillsBench pilot from a single
+  `software-engineering` category to one shared full-benchmark skill. The
+  `skillsbench` dataloader now supports `domain=all`, deterministic
+  `stratify_by=category` splits, per-split category manifests, and
+  category-level reporting while keeping one evolving skill. Added the full
+  pilot config at `configs/skillsbench/full_claude_pilot.yaml`, generic
+  initial skill at `skillopt/envs/skillsbench/skills/initial.md`, and formal
+  runner `scripts/run_skillsbench_claude_pilot.sh`.
+- 2026-06-14 CST: Implemented the first SkillsBench migration scaffold for
+  SkillOpt: clean shadow task copies that remove SkillsBench curated
+  `environment/skills`, runtime `skillopt-target` skill-pack generation,
+  BenchFlow Python `Rollout` integration, and fail-fast auth preflight. No
+  valid Claude/BenchFlow agent rollout has completed yet.
 - 2026-06-07 CST: Completed post-hoc analysis of
   `outputs/skillopt_searchqa_gpt-5.5_20260529_235037/` for group-meeting
   documentation. Added a reproducible stdlib-only analysis script at
@@ -27,65 +32,89 @@
 
 ## Current Goal
 
-Run a SkillsBench `software-engineering` domain pilot through SkillOpt's
-existing skill evolution loop.
+Run a full SkillsBench pilot through SkillOpt's existing skill evolution loop
+with one shared evolving skill.
 
 ## Current Status
 
-- 2026-06-14 CST: Code-level migration scaffold is implemented and validated
-  without starting Docker/Claude agent rollouts.
-- The pilot config loads `env=skillsbench`, discovers 16
-  `software-engineering` tasks from `/Users/liyulin/projects/skillsbench`, and
-  produces the agreed `seed=42`, `2:1:7` split: train=3, val=2, test=11.
-- The first pilot is configured with `eval_test=false`, so it will train and
-  gate on validation only; held-out test can be enabled after the adapter smoke
-  succeeds.
+- 2026-06-14 CST: The active pilot config is now
+  `configs/skillsbench/full_claude_pilot.yaml`. It loads all 88 tasks from
+  `/Users/liyulin/projects/skillsbench/tasks` and creates a deterministic
+  seed=42, `2:1:7`, `stratify_by=category` split:
+  train=18, validation=9, test=61.
+- 2026-06-14 04:53 CST: The first launch completed but is invalid. No Claude
+  task execution or optimizer reflection actually ran: BenchFlow returned
+  `ANTHROPIC_API_KEY required...`, and SkillOpt reflection/slow/meta updates
+  returned `Azure OpenAI endpoint is not configured...`. The invalid artifacts
+  are kept at
+  `outputs/skillsbench_software_engineering_claude_pilot_20260614_045337`.
+- 2026-06-14 CST: Added a SkillsBench adapter preflight so missing Claude auth
+  or missing SkillOpt optimizer endpoint now raises before training starts,
+  preventing future all-zero invalid runs.
+- The full pilot is configured with `eval_test=false`, so it will train and
+  gate on validation only; held-out test can be enabled after a valid pilot
+  completes.
 
 ## Current Decisions
 
 - Use SkillsBench tasks and verifiers, but not SkillsBench human-curated
   skills.
-- Use SkillsBench `[metadata].category` as the domain; first pilot domain is
-  `software-engineering`.
-- Evolve one shared skill for the domain, not one skill per task.
-- Split with `seed=42`, `train:validation:test=2:1:7`, which gives `3/2/11`
-  for the 16-task software-engineering domain.
+- Evolve one shared skill for the whole SkillsBench benchmark, not one skill
+  per category or task.
+- Use SkillsBench `[metadata].category` only for stratified splitting and
+  reporting.
+- Split all SkillsBench tasks with `seed=42`,
+  `train:validation:test=2:1:7`, and `stratify_by=category`, which gives
+  `18/9/61` over 88 tasks.
 - Use `claude-agent-acp` for target rollouts through BenchFlow Python API.
 - Keep SkillOpt optimizer/reflection on the current SkillOpt configuration.
-- Initialize the domain skill with SkillOpt's existing empty-rule style:
+- Initialize the benchmark skill with SkillOpt's existing empty-rule style:
   `(No learned rules yet. Rules will be added through the reflection process.)`.
 - Generate a runtime `skillopt-target/SKILL.md` skill pack using the existing
   `render_skill_md` style; do not add frontmatter protection.
 - Convert BenchFlow/ACP trajectories into SkillOpt's existing
   `conversation.json` format for reflection.
-- First pilot uses `train_size=3`, `batch_size=3`, `num_epochs=4`,
-  `slow_update_samples=3`, and `eval_test=false`.
+- First full pilot uses `train_size=0` auto-derived from the split,
+  `batch_size=18`, `num_epochs=4`, `slow_update_samples=18`, and
+  `eval_test=false`.
 
 ## Current Next Steps
 
 - Run a real one-step or full validation-gated pilot only after confirming
   Docker and Claude/BenchFlow auth are ready.
 - Suggested first command:
-  `uv run python scripts/train.py --config configs/skillsbench/software_engineering_claude_pilot.yaml`.
+  `bash scripts/run_skillsbench_claude_pilot.sh`.
 - If the pilot completes, enable held-out test with
   `--cfg-options evaluation.eval_test=true` and keep the same split.
 
 ## Current Blockers
 
-- No code-level blocker is known.
-- Real rollout validation still requires working Docker/BenchFlow runtime and
-  Claude credentials or subscription auth for `claude-agent-acp`.
+- Real rollout validation is blocked by missing runtime credentials in the
+  launch shell:
+  `ANTHROPIC_API_KEY`/Anthropic auth is missing for `claude-agent-acp`, and
+  `AZURE_OPENAI_ENDPOINT` is missing for the SkillOpt optimizer.
+- Docker/BenchFlow runtime has not been reached yet because auth preflight
+  failed first.
 
 ## Current Validation
 
-- `uv run python -m py_compile skillopt/envs/skillsbench/dataloader.py skillopt/envs/skillsbench/rollout.py skillopt/envs/skillsbench/adapter.py scripts/train.py`
-  passed.
+- The invalid run produced `baseline_selection_hard=0.0`, `total_steps=4`,
+  and no token usage; it must not be used as an experiment result.
+- `selection_eval_baseline/results.jsonl` shows both validation failures were
+  agent setup errors from missing Anthropic auth.
+- `.venv/bin/python -m py_compile skillopt/envs/skillsbench/adapter.py` passed
+  after adding fail-fast preflight.
+- Preflight smoke now raises `SkillsBench claude-agent-acp requires Anthropic
+  auth` before training when the shell lacks credentials.
 - `.venv/bin/python -m py_compile skillopt/envs/skillsbench/dataloader.py skillopt/envs/skillsbench/rollout.py skillopt/envs/skillsbench/adapter.py scripts/train.py`
+  passed after the full-benchmark split migration.
+- `bash -n scripts/run_skillsbench_claude_pilot.sh` and
+  `bash -n scripts/run_skillsbench_software_engineering_claude_pilot.sh`
   passed.
-- Config/adapter smoke passed and confirmed split:
-  train=`flink-query`, `llm-prefix-cache-replay`, `fix-build-google-auto`;
-  val=`fix-visual-stability`, `spring-boot-jakarta-migration`; test has 11
-  tasks.
+- Config/adapter smoke with dummy auth passed for both
+  `configs/skillsbench/full_claude_pilot.yaml` and the old compatibility
+  alias, confirming `domain=all`, `stratify_by=category`, train=18, val=9,
+  test=61.
 - Shadow-task smoke on `dialogue-parser` confirmed `environment/skills` is
   removed.
 - Skill-pack smoke confirmed `skillopt-target/SKILL.md` is generated with

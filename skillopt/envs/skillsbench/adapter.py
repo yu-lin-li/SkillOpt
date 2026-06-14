@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any
 
 from skillopt.datasets.base import BatchSpec
@@ -12,16 +13,17 @@ from skillopt.gradient.reflect import run_minibatch_reflect
 
 
 class SkillsBenchAdapter(EnvAdapter):
-    """Run SkillsBench domain tasks while preserving SkillOpt's update loop."""
+    """Run SkillsBench tasks while preserving SkillOpt's update loop."""
 
     def __init__(
         self,
         skillsbench_root: str = "/Users/liyulin/projects/skillsbench",
-        domain: str = "software-engineering",
+        domain: str = "all",
         tasks_dir: str = "",
         split_mode: str = "ratio",
         split_ratio: str = "2:1:7",
         split_seed: int = 42,
+        stratify_by: str = "",
         split_dir: str = "",
         split_output_dir: str = "",
         seed: int = 42,
@@ -60,6 +62,7 @@ class SkillsBenchAdapter(EnvAdapter):
             split_mode=split_mode,
             split_ratio=split_ratio,
             split_seed=split_seed,
+            stratify_by=stratify_by,
             split_dir=split_dir,
             split_output_dir=split_output_dir,
             seed=seed,
@@ -68,6 +71,7 @@ class SkillsBenchAdapter(EnvAdapter):
 
     def setup(self, cfg: dict) -> None:
         super().setup(cfg)
+        self._preflight_runtime_auth(cfg)
         self.dataloader.setup(cfg)
 
     def get_dataloader(self):
@@ -134,5 +138,41 @@ class SkillsBenchAdapter(EnvAdapter):
         )
 
     def get_task_types(self) -> list[str]:
+        if getattr(self.dataloader, "categories", None):
+            return list(self.dataloader.categories)
         return [self.domain]
 
+    def _preflight_runtime_auth(self, cfg: dict) -> None:
+        """Fail before producing invalid all-zero runs when credentials are absent."""
+        if self.skillsbench_agent == "claude-agent-acp" and self.skillsbench_model:
+            has_claude_env = any(
+                os.environ.get(key)
+                for key in (
+                    "ANTHROPIC_API_KEY",
+                    "ANTHROPIC_AUTH_TOKEN",
+                    "CLAUDE_CODE_OAUTH_TOKEN",
+                )
+            )
+            has_claude_login = (Path.home() / ".claude" / ".credentials.json").is_file()
+            if not has_claude_env and not has_claude_login:
+                raise RuntimeError(
+                    "SkillsBench claude-agent-acp requires Anthropic auth. "
+                    "Export ANTHROPIC_API_KEY/ANTHROPIC_AUTH_TOKEN or run `claude login` "
+                    "so ~/.claude/.credentials.json exists."
+                )
+
+        optimizer_backend = str(cfg.get("optimizer_backend") or "").strip()
+        if optimizer_backend in {"openai_chat", "azure_openai"}:
+            endpoint = (
+                cfg.get("optimizer_azure_openai_endpoint")
+                or cfg.get("azure_openai_endpoint")
+                or cfg.get("azure_endpoint")
+                or os.environ.get("OPTIMIZER_AZURE_OPENAI_ENDPOINT")
+                or os.environ.get("AZURE_OPENAI_ENDPOINT")
+            )
+            if not endpoint:
+                raise RuntimeError(
+                    "SkillOpt optimizer requires AZURE_OPENAI_ENDPOINT or "
+                    "optimizer_azure_openai_endpoint before running SkillsBench training. "
+                    "If using the repo .env shell fragment, source it in the launch shell first."
+                )

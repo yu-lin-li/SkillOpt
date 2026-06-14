@@ -1,6 +1,8 @@
-"""Dataloader for SkillsBench task-domain splits."""
+"""Dataloader for SkillsBench benchmark splits."""
 from __future__ import annotations
 
+from collections import Counter
+import hashlib
 import json
 import os
 import random
@@ -15,7 +17,15 @@ except ModuleNotFoundError:  # pragma: no cover - legacy interpreter fallback
 from skillopt.datasets.base import BaseDataLoader, BatchSpec
 
 
-def _compute_split_counts(total: int, ratio: tuple[int, int, int]) -> tuple[int, int, int]:
+_ALL_DOMAIN_ALIASES = {"", "all", "*", "full", "skillsbench"}
+
+
+def _compute_split_counts(
+    total: int,
+    ratio: tuple[int, int, int],
+    *,
+    ensure_nonempty: bool = False,
+) -> tuple[int, int, int]:
     weights = list(ratio)
     denom = sum(weights)
     raw = [total * weight / denom for weight in weights]
@@ -28,6 +38,19 @@ def _compute_split_counts(total: int, ratio: tuple[int, int, int]) -> tuple[int,
     )
     for idx in order[:remaining]:
         counts[idx] += 1
+    if ensure_nonempty and total >= 3:
+        for zero_idx, count in enumerate(list(counts)):
+            if count > 0:
+                continue
+            donor = max(
+                (idx for idx, donor_count in enumerate(counts) if donor_count > 1),
+                key=lambda idx: (counts[idx], weights[idx]),
+                default=None,
+            )
+            if donor is None:
+                break
+            counts[donor] -= 1
+            counts[zero_idx] += 1
     return counts[0], counts[1], counts[2]
 
 
@@ -55,17 +78,39 @@ def _canonical_split(split: str) -> str:
     return aliases[split]
 
 
+def _include_all_domains(domain: str) -> bool:
+    return str(domain or "").strip().lower() in _ALL_DOMAIN_ALIASES
+
+
+def _normalize_stratify_by(value: str) -> str:
+    raw = str(value or "").strip()
+    if raw.lower() in {"", "none", "false", "0", "off"}:
+        return ""
+    return raw
+
+
+def _stable_seed(seed: int, label: str) -> int:
+    digest = hashlib.sha256(f"{seed}:{label}".encode("utf-8")).hexdigest()
+    return int(digest[:16], 16)
+
+
+def _category_counts(items: list[dict[str, Any]]) -> dict[str, int]:
+    counts = Counter(str(item.get("category") or "unknown") for item in items)
+    return dict(sorted(counts.items()))
+
+
 class SkillsBenchDataLoader(BaseDataLoader):
-    """Build deterministic per-domain SkillsBench train/val/test splits."""
+    """Build deterministic SkillsBench train/val/test splits."""
 
     def __init__(
         self,
         skillsbench_root: str,
-        domain: str = "software-engineering",
+        domain: str = "all",
         tasks_dir: str = "",
         split_mode: str = "ratio",
         split_ratio: str = "2:1:7",
         split_seed: int = 42,
+        stratify_by: str = "",
         split_dir: str = "",
         split_output_dir: str = "",
         seed: int = 42,
@@ -77,6 +122,7 @@ class SkillsBenchDataLoader(BaseDataLoader):
         self.split_mode = split_mode
         self.split_ratio = split_ratio
         self.split_seed = int(split_seed)
+        self.stratify_by = _normalize_stratify_by(stratify_by)
         self.split_dir = Path(split_dir).expanduser() if split_dir else None
         self.split_output_dir = split_output_dir
         self.seed = int(seed)
@@ -86,6 +132,7 @@ class SkillsBenchDataLoader(BaseDataLoader):
         self.test_items: list[dict[str, Any]] = []
         self._items_by_id: dict[str, dict[str, Any]] = {}
         self._out_root = ""
+        self.categories: list[str] = []
 
     def set_out_root(self, out_root: str) -> None:
         self._out_root = out_root
@@ -94,12 +141,13 @@ class SkillsBenchDataLoader(BaseDataLoader):
         self._out_root = str(cfg.get("out_root") or self._out_root or "")
         if not self.tasks_dir.is_dir():
             raise FileNotFoundError(f"SkillsBench tasks dir not found: {self.tasks_dir}")
-        items = self._load_domain_items()
+        items = self._load_items()
         if self.limit > 0:
             items = items[: self.limit]
         if not items:
             raise ValueError(f"No SkillsBench tasks found for domain={self.domain!r}")
         self._items_by_id = {str(item["id"]): item for item in items}
+        self.categories = sorted({str(item.get("category") or "unknown") for item in items})
         if self.split_mode == "ratio":
             self.train_items, self.val_items, self.test_items = self._build_ratio_split(items)
         elif self.split_mode == "split_dir":
@@ -116,6 +164,13 @@ class SkillsBenchDataLoader(BaseDataLoader):
     def state_dict(self) -> dict[str, Any]:
         return {
             "domain": self.domain,
+            "stratify_by": self.stratify_by,
+            "categories": self.categories,
+            "category_counts": {
+                "train": _category_counts(self.train_items),
+                "val": _category_counts(self.val_items),
+                "test": _category_counts(self.test_items),
+            },
             "split_seed": self.split_seed,
             "train": [item["id"] for item in self.train_items],
             "val": [item["id"] for item in self.val_items],
@@ -130,7 +185,11 @@ class SkillsBenchDataLoader(BaseDataLoader):
             seed=seed,
             batch_size=len(items),
             payload=items,
-            metadata={"domain": self.domain},
+            metadata={
+                "domain": self.domain,
+                "stratify_by": self.stratify_by,
+                "categories": self.categories,
+            },
         )
 
     def build_eval_batch(
@@ -153,15 +212,22 @@ class SkillsBenchDataLoader(BaseDataLoader):
             seed=seed,
             batch_size=len(items),
             payload=items,
-            metadata={"domain": self.domain, "canonical_split": canonical},
+            metadata={
+                "domain": self.domain,
+                "stratify_by": self.stratify_by,
+                "canonical_split": canonical,
+                "categories": self.categories,
+            },
         )
 
-    def _load_domain_items(self) -> list[dict[str, Any]]:
+    def _load_items(self) -> list[dict[str, Any]]:
         items: list[dict[str, Any]] = []
+        include_all = _include_all_domains(self.domain)
         for task_toml in sorted(self.tasks_dir.glob("*/task.toml")):
             raw = tomllib.loads(task_toml.read_text(encoding="utf-8"))
             metadata = raw.get("metadata") or {}
-            if metadata.get("category") != self.domain:
+            category = str(metadata.get("category") or "")
+            if not include_all and category != self.domain:
                 continue
             task_dir = task_toml.parent
             instruction_path = task_dir / "instruction.md"
@@ -172,7 +238,7 @@ class SkillsBenchDataLoader(BaseDataLoader):
                 "task_path": str(task_dir),
                 "instruction": instruction,
                 "task_description": instruction[:2000],
-                "category": metadata.get("category", ""),
+                "category": category,
                 "difficulty": metadata.get("difficulty", ""),
                 "subcategory": metadata.get("subcategory", ""),
                 "tags": metadata.get("tags", []),
@@ -185,6 +251,8 @@ class SkillsBenchDataLoader(BaseDataLoader):
         self,
         items: list[dict[str, Any]],
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+        if self.stratify_by:
+            return self._build_stratified_ratio_split(items)
         ordered = sorted(items, key=lambda item: str(item["id"]))
         shuffled = list(ordered)
         random.Random(self.split_seed).shuffle(shuffled)
@@ -193,6 +261,41 @@ class SkillsBenchDataLoader(BaseDataLoader):
         val = shuffled[n_train : n_train + n_val]
         test = shuffled[n_train + n_val :]
         return train, val, test
+
+    def _build_stratified_ratio_split(
+        self,
+        items: list[dict[str, Any]],
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+        groups: dict[str, list[dict[str, Any]]] = {}
+        for item in items:
+            group_key = self._stratify_key(item)
+            groups.setdefault(group_key, []).append(item)
+
+        ratio = _parse_ratio(self.split_ratio)
+        train: list[dict[str, Any]] = []
+        val: list[dict[str, Any]] = []
+        test: list[dict[str, Any]] = []
+        for group_key in sorted(groups):
+            group = sorted(groups[group_key], key=lambda item: str(item["id"]))
+            random.Random(_stable_seed(self.split_seed, group_key)).shuffle(group)
+            n_train, n_val, _ = _compute_split_counts(
+                len(group),
+                ratio,
+                ensure_nonempty=True,
+            )
+            train.extend(group[:n_train])
+            val.extend(group[n_train : n_train + n_val])
+            test.extend(group[n_train + n_val :])
+
+        random.Random(_stable_seed(self.split_seed, "train")).shuffle(train)
+        random.Random(_stable_seed(self.split_seed, "val")).shuffle(val)
+        random.Random(_stable_seed(self.split_seed, "test")).shuffle(test)
+        return train, val, test
+
+    def _stratify_key(self, item: dict[str, Any]) -> str:
+        metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+        value = item.get(self.stratify_by, metadata.get(self.stratify_by, ""))
+        return str(value or "unknown")
 
     def _load_split_file(self, name: str) -> list[dict[str, Any]]:
         if not self.split_dir:
@@ -237,10 +340,17 @@ class SkillsBenchDataLoader(BaseDataLoader):
             "split_mode": self.split_mode,
             "split_ratio": self.split_ratio,
             "split_seed": self.split_seed,
+            "stratify_by": self.stratify_by,
+            "categories": self.categories,
             "counts": {
                 "train": len(self.train_items),
                 "val": len(self.val_items),
                 "test": len(self.test_items),
+            },
+            "category_counts": {
+                "train": _category_counts(self.train_items),
+                "val": _category_counts(self.val_items),
+                "test": _category_counts(self.test_items),
             },
             "train": [item["id"] for item in self.train_items],
             "val": [item["id"] for item in self.val_items],
@@ -248,4 +358,3 @@ class SkillsBenchDataLoader(BaseDataLoader):
         }
         with open(os.path.join(output_dir, "split.json"), "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
-
