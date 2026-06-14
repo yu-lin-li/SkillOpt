@@ -1,8 +1,12 @@
 _base_: ../_base_/default.yaml
 
 model:
-  # Optimizer/reflection stay on the default SkillOpt OpenAI chat backend.
-  target_backend: openai_chat
+  # Optimizer/reflection use SkillOpt's OpenAI chat backend.
+  optimizer: gpt-5.5
+  optimizer_backend: openai_chat
+  # Target task execution is delegated to BenchFlow via env.skillsbench_model.
+  target: claude-sonnet-4-6
+  target_backend: claude_chat
 
 train:
   num_epochs: 4
@@ -34,7 +38,7 @@ env:
   split_mode: split_dir
   split_dir: data/skillsbench_split
   skillsbench_agent: claude-agent-acp
-  skillsbench_model: claude-haiku-4-5-20251001
+  skillsbench_model: claude-sonnet-4-6
   skillsbench_sandbox: docker
   sandbox_user: agent
   include_task_skills: false

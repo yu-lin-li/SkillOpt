@@ -5,6 +5,9 @@
 - 2026-06-14 CST: Updated the SearchQA no-skill baseline runner to use the
   explicit `scripts/eval_only.py --no-skill` flag instead of creating an
   `empty_skill.md` artifact or relying on a deliberately missing path.
+- 2026-06-14 CST: Updated the SkillsBench pilot model recipe so SkillOpt
+  optimizer/reflection uses `gpt-5.5`, while BenchFlow target rollouts use
+  `claude-sonnet-4-6` through `env.skillsbench_model`.
 - 2026-06-14 CST: Materialized the full SkillsBench pilot split into
   `data/skillsbench_split/` and switched
   `configs/skillsbench/full_claude_pilot.yaml` to `split_mode: split_dir`.
@@ -78,7 +81,9 @@ with one shared evolving skill.
   `train:validation:test=2:1:7`, and `stratify_by=category`, giving `18/9/61`
   over 88 tasks.
 - Use `claude-agent-acp` for target rollouts through BenchFlow Python API.
-- Keep SkillOpt optimizer/reflection on the current SkillOpt configuration.
+- Use `claude-sonnet-4-6` for target rollouts through BenchFlow
+  `claude-agent-acp`.
+- Use `gpt-5.5` on SkillOpt's `openai_chat` backend for optimizer/reflection.
 - Initialize the benchmark skill with SkillOpt's existing empty-rule style:
   `(No learned rules yet. Rules will be added through the reflection process.)`.
 - Generate a runtime `skillopt-target/SKILL.md` skill pack using the existing
@@ -124,6 +129,9 @@ with one shared evolving skill.
   `configs/skillsbench/full_claude_pilot.yaml`, confirming it now uses
   `split_mode=split_dir`, `split_dir=data/skillsbench_split`, train=18,
   val=9, test=61, and records the source split manifest in the run artifact.
+- Config/adapter smoke with dummy auth also confirmed
+  `optimizer_model=gpt-5.5`, `target_model=claude-sonnet-4-6`, and
+  `adapter.skillsbench_model=claude-sonnet-4-6`.
 - Fixed split JSON parse passed for
   `data/skillsbench_split/train/items.json`, `val/items.json`,
   `test/items.json`, and `split_manifest.json`.

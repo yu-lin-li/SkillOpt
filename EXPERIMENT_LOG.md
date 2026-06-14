@@ -470,6 +470,7 @@ or provider endpoint strings appear in the resulting artifacts.
 
 | Date/Time | Experiment | Goal | Scope | Status |
 | --- | --- | --- | --- | --- |
+| 2026-06-14 13:17 CST | SkillsBench model recipe update | Configure the active SkillsBench pilot to use `gpt-5.5` for SkillOpt optimization and `claude-sonnet-4-6` for target task rollouts. | Config/runner update plus dummy-auth adapter setup only; no real Claude/BenchFlow rollout launched. | Config updated |
 | 2026-06-14 12:24 CST | SkillsBench fixed split materialization | Store the full-benchmark SkillsBench train/validation/test split as a repo input so formal runs do not rebuild it. | Generated `data/skillsbench_split/` from the existing seed=42, 2:1:7, category-stratified logic; switched the pilot config to `split_mode=split_dir`; dummy-auth adapter setup only. | Split fixed |
 | 2026-06-14 CST | SkillsBench single-category cleanup | Remove obsolete single-domain compatibility files and filtering logic after adopting full-benchmark training. | Deleted legacy config/runner/initial skill; simplified dataloader/adapter to always load all tasks. | Cleanup implemented |
 | 2026-06-14 CST | SkillsBench full-benchmark SkillOpt pilot split migration | Evolve one shared SkillOpt skill over all SkillsBench tasks instead of per-category skills. | Config/code migration; dummy-auth adapter setup only; no real Claude/BenchFlow rollout launched. | Scaffold updated |
@@ -507,8 +508,9 @@ Configuration decisions:
   software-engineering=3.
 - Validation split category counts are one task per category except
   software-engineering=2.
-- Target rollout backend is BenchFlow `claude-agent-acp`; optimizer/reflection
-  remains SkillOpt's current OpenAI chat configuration.
+- Target rollout backend is BenchFlow `claude-agent-acp` with
+  `skillsbench_model=claude-sonnet-4-6`; optimizer/reflection uses SkillOpt's
+  `openai_chat` backend with `optimizer_model=gpt-5.5`.
 - First full pilot uses `train_size=0` auto-derived from the split,
   `batch_size=18`, `num_epochs=4`, `slow_update_samples=18`, and
   `eval_test=false`.
@@ -551,6 +553,10 @@ Validation:
   no `domain` config key, `split_mode=split_dir`,
   `split_dir=data/skillsbench_split`, train=18, validation=9, test=61, and
   run-artifact provenance copied from the fixed source manifest.
+- Config/adapter smoke with dummy auth confirmed the active model recipe:
+  `optimizer_model=gpt-5.5`, `optimizer_backend=openai_chat`,
+  `target_model=claude-sonnet-4-6`, `target_backend=claude_chat`, and
+  `adapter.skillsbench_model=claude-sonnet-4-6`.
 - Fixed split JSON parse passed for `train/items.json`, `val/items.json`,
   `test/items.json`, and `split_manifest.json`.
 - Shadow-task smoke confirmed curated task skills are removed.
