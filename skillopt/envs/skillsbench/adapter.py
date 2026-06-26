@@ -38,6 +38,7 @@ class SkillsBenchAdapter(EnvAdapter):
         edit_budget: int = 4,
         include_task_skills: bool = False,
         agent_idle_timeout: int = 600,
+        skillsbench_auth_mode: str = "api_key",
         skillsbench_agent_env: dict[str, str] | None = None,
     ) -> None:
         self.skillsbench_root = skillsbench_root
@@ -52,7 +53,12 @@ class SkillsBenchAdapter(EnvAdapter):
         self.edit_budget = int(edit_budget or 4)
         self.include_task_skills = bool(include_task_skills)
         self.agent_idle_timeout = int(agent_idle_timeout) if agent_idle_timeout is not None else None
-        self.skillsbench_agent_env = dict(skillsbench_agent_env or {})
+        self.skillsbench_auth_mode = str(skillsbench_auth_mode or "api_key").strip()
+        self.skillsbench_agent_env = self._resolve_agent_env(
+            skillsbench_agent,
+            dict(skillsbench_agent_env or {}),
+            auth_mode=self.skillsbench_auth_mode,
+        )
         self.dataloader = SkillsBenchDataLoader(
             skillsbench_root=skillsbench_root,
             tasks_dir=tasks_dir,
@@ -138,6 +144,45 @@ class SkillsBenchAdapter(EnvAdapter):
         if getattr(self.dataloader, "categories", None):
             return list(self.dataloader.categories)
         return ["skillsbench"]
+
+    @staticmethod
+    def _resolve_agent_env(
+        agent: str,
+        explicit: dict[str, str],
+        *,
+        auth_mode: str = "api_key",
+    ) -> dict[str, str]:
+        """Pass Claude relay settings explicitly into BenchFlow agent env."""
+        resolved = dict(explicit)
+        if agent != "claude-agent-acp":
+            return resolved
+        auth_mode = str(auth_mode or "api_key").strip().lower()
+        for key in (
+            "ANTHROPIC_API_KEY",
+            "ANTHROPIC_AUTH_TOKEN",
+            "CLAUDE_CODE_OAUTH_TOKEN",
+            "ANTHROPIC_BASE_URL",
+            "ANTHROPIC_MODEL",
+        ):
+            value = os.environ.get(key)
+            if value:
+                resolved.setdefault(key, value)
+        if resolved.get("ANTHROPIC_BASE_URL"):
+            resolved.setdefault("BENCHFLOW_PROVIDER_BASE_URL", resolved["ANTHROPIC_BASE_URL"])
+        provider_key = resolved.get("ANTHROPIC_AUTH_TOKEN") or resolved.get("ANTHROPIC_API_KEY")
+        if provider_key:
+            resolved.setdefault("BENCHFLOW_PROVIDER_API_KEY", provider_key)
+        if auth_mode == "api_key" and resolved.get("ANTHROPIC_API_KEY"):
+            # Claude Code treats ANTHROPIC_AUTH_TOKEN as a bearer/OAuth path.
+            # For Claude-compatible API-key relays, keep the key path explicit
+            # and prevent BenchFlow env_mapping from reintroducing a token.
+            resolved["ANTHROPIC_AUTH_TOKEN"] = ""
+        elif auth_mode not in {"api_key", "auth_token"}:
+            raise ValueError(
+                "skillsbench_auth_mode must be 'api_key' or 'auth_token', "
+                f"got {auth_mode!r}"
+            )
+        return resolved
 
     def _preflight_runtime_auth(self, cfg: dict) -> None:
         """Fail before producing invalid all-zero runs when credentials are absent."""

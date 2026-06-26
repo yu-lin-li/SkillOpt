@@ -1,5 +1,23 @@
 # EXPERIMENT_LOG.md
 
+## SkillsBench Docker Environment Audits
+
+| Date/Time | Experiment | Goal | Configuration | Command | Output | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-06-16 00:36 CST | SkillsBench v1.2 core Docker build+up smoke | Identify which current SkillsBench core Docker sandboxes fail on the local arm64 Docker host before relaunching SkillOpt experiments. | 87 core tasks from `/Users/liyulin/projects/skillsbench/registry.json` version `1.2`; exclude `tasks-extra/taxonomy-tree-merge`; sequential build+up; task-specific build timeout; down cleanup keeps images/cache. | `uv run python scripts/dev/skillsbench_core_build_up_smoke.py --out-root outputs/dev/skillsbench_core_build_up_smoke_20260616_full` | [summary.md](outputs/dev/skillsbench_core_build_up_smoke_20260616_full/summary.md), [results.jsonl](outputs/dev/skillsbench_core_build_up_smoke_20260616_full/results.jsonl) | Completed |
+
+Result summary: Docker host was `arm64 linux`, SkillsBench commit
+`87df9cbd82fcf07fcb0cab960a1f8435d0c415ee`, and 87 core tasks were tested.
+84 passed build+up, 2 failed during build, and 1 timed out during up. The build
+failures were `python-scala-translation` (`arch_binary_mismatch`, hardcoded
+`cs-x86_64-pc-linux.gz`) and `multilingual-video-dubbing`
+(`package_or_apt_failure`, no matching `torchaudio==2.6.0+cpu` aarch64
+distribution). `latex-formula-extraction` built for a long time and then timed
+out during `docker compose up --detach --wait`; this needs separate follow-up
+because the smoke only proves up did not complete within 180s. Docker storage
+grew from Images 15.88GB / Build Cache 16.92GB before the full run to Images
+210.1GB / Build Cache 86.41GB after the run.
+
 ## SearchQA Training Experiments
 
 | Date/Time | Experiment | Goal | Configuration | Command | Output | Status |
@@ -470,6 +488,16 @@ or provider endpoint strings appear in the resulting artifacts.
 
 | Date/Time | Experiment | Goal | Scope | Status |
 | --- | --- | --- | --- | --- |
+| 2026-06-14 20:43 CST | SkillsBench api-key full pilot stopped | Stop the active `150129` pilot after checking it was not producing a valid trajectory. | Killed PID `9573`/`9579`/`9580` and stopped the active `jpg-ocr-stat` Docker container. Final partial state: Selection baseline 9/9 hard=1/9; step 1 rollout 10/18 hard=3/10; `last_completed_step=0`; no `history.json` or `summary.json`. Failures included Claude quota 402, model access, self-signed certificate, task wall-clock timeouts, and Docker/Rosetta build failure. | Stopped / invalid |
+| 2026-06-14 17:11 CST | SkillsBench api-key full pilot monitoring | Check whether the active `150129` pilot is still running and how far it got. | PID `9573` and Python child are alive. Selection baseline is 9/9 hard=1/9. Step 1 rollout has 2/18 results: `edit-pdf` failed with self-signed certificate API error, `earthquake-phase-association` succeeded; `shock-analysis-demand-main-1` Docker container is currently running. No `history.json` or `summary.json` yet. | Running but degraded |
+| 2026-06-14 16:37 CST | SkillsBench api-key full pilot monitoring | Check current status of the active `150129` full pilot. | Selection baseline finished 9/9 with hard=1/9 and `runtime_state.json` at `last_completed_step=0`; step 1 rollout started on `edit-pdf` but no step result is written yet. Baseline had normal verifier failures plus Docker/Rosetta build failure and Claude/model access errors including quota 402, model access, and self-signed certificate. | Blocked/diagnostic |
+| 2026-06-14 15:01 CST | SkillsBench held-out-test api-key full pilot relaunch | Run the formal SkillOpt-on-SkillsBench pilot after the api-key smoke avoided previous 402/403 relay errors. | Detached PID `9573`; log `outputs/run_logs/skillsbench_claude_pilot_20260614_150129.log`; output root `outputs/skillsbench_claude_pilot_20260614_150129`; resolved config confirms `skillsbench_auth_mode=api_key` and `eval_test=True`. | Running |
+| 2026-06-14 15:00 CST | SkillsBench Claude api-key real-task smoke | Verify that `skillsbench_auth_mode=api_key` avoids the prior 402/403 relay failures on a real SkillsBench task. | One `suricata-custom-exfil` rollout through SkillOpt `run_batch`, Docker sandbox, `claude-agent-acp`; output under `outputs/dev/skillsbench_claude_api_key_smoke_20260614_145446`. | API path passed; task failed verifier |
+| 2026-06-14 14:15 CST | SkillsBench held-out-test full pilot launch | Run the formal SkillOpt-on-SkillsBench pilot with validation gate and full 61-task held-out test enabled. | Detached PID `84395`; log `outputs/run_logs/skillsbench_claude_pilot_20260614_141531.log`; output root `outputs/skillsbench_claude_pilot_20260614_141531`; resolved config confirms `eval_test=True`. Stopped after two Selection baseline failures from upstream model API errors. | Invalid/blocked |
+| 2026-06-14 14:13 CST | SkillsBench Claude ACP hello-world smoke | Verify local relay + `claude-agent-acp` + SkillOpt skill-pack injection on a minimal task before relaunching the full pilot. | One `experiments/sanity-tasks/hello-world` task through SkillOpt `run_batch`, Docker sandbox, `agent_idle_timeout=60`; output under `outputs/dev/skillsbench_claude_hello_smoke_20260614_1410`. | Passed |
+| 2026-06-14 14:09 CST | SkillsBench test-enabled full pilot diagnostic run | Relaunch the formal full SkillsBench pilot with held-out test enabled after hardening npm install. | `bash scripts/run_skillsbench_claude_pilot.sh`; output under `outputs/skillsbench_claude_pilot_20260614_135343`. First baseline task installed ACP successfully but produced no result for about 15 minutes; manually interrupted. | Invalid/diagnostic |
+| 2026-06-14 13:44 CST | SkillsBench test-enabled relaunch prep | Make the formal SkillsBench pilot run held-out test and harden transient ACP agent npm installs. | Set `evaluation.eval_test=true`; updated runner text; added npm fetch retries to `claude-agent-acp` installer patch; previous `134046` launch interrupted and invalid. | Ready to relaunch |
+| 2026-06-14 13:39 CST | SkillsBench Claude relay preflight | Reuse local `BASE_URL`/`API_KEY` relay variables for BenchFlow `claude-agent-acp` target rollouts. | Updated local `.env`, `.env.example`, and adapter `agent_env` forwarding; no real rollout launched in this check. | Ready to launch |
 | 2026-06-14 13:17 CST | SkillsBench model recipe update | Configure the active SkillsBench pilot to use `gpt-5.5` for SkillOpt optimization and `claude-sonnet-4-6` for target task rollouts. | Config/runner update plus dummy-auth adapter setup only; no real Claude/BenchFlow rollout launched. | Config updated |
 | 2026-06-14 12:24 CST | SkillsBench fixed split materialization | Store the full-benchmark SkillsBench train/validation/test split as a repo input so formal runs do not rebuild it. | Generated `data/skillsbench_split/` from the existing seed=42, 2:1:7, category-stratified logic; switched the pilot config to `split_mode=split_dir`; dummy-auth adapter setup only. | Split fixed |
 | 2026-06-14 CST | SkillsBench single-category cleanup | Remove obsolete single-domain compatibility files and filtering logic after adopting full-benchmark training. | Deleted legacy config/runner/initial skill; simplified dataloader/adapter to always load all tasks. | Cleanup implemented |
@@ -493,6 +521,16 @@ Invalid launch result:
   when Claude auth or the optimizer endpoint is missing.
 
 Configuration decisions:
+- Local relay mapping: `.env` maps `BASE_URL`/`API_KEY` to
+  `ANTHROPIC_API_KEY` and `ANTHROPIC_BASE_URL`.
+  `SkillsBenchAdapter` forwards those values into BenchFlow `agent_env`,
+  including `BENCHFLOW_PROVIDER_BASE_URL` and `BENCHFLOW_PROVIDER_API_KEY`, so
+  the ACP agent gets auth and base URL inside the sandbox.
+- Because the user cannot change relay backend channel routing, SkillsBench
+  Claude rollouts now use `skillsbench_auth_mode=api_key`. This preserves the
+  API-key path and sets `ANTHROPIC_AUTH_TOKEN=""` explicitly so BenchFlow's
+  provider mapping does not switch `claude-agent-acp` into the bearer token
+  path by default.
 - Active pilot scope is the full SkillsBench task set.
 - Evolve one shared skill for all categories. SkillsBench
   `[metadata].category` is used for fixed split provenance and reporting, not
@@ -513,7 +551,26 @@ Configuration decisions:
   `openai_chat` backend with `optimizer_model=gpt-5.5`.
 - First full pilot uses `train_size=0` auto-derived from the split,
   `batch_size=18`, `num_epochs=4`, `slow_update_samples=18`, and
-  `eval_test=false`.
+  `eval_test=true` so the full 61-task held-out test split runs.
+
+Interrupted launch:
+- `outputs/skillsbench_claude_pilot_20260614_134046` is invalid. It used the
+  old test-disabled default and was manually interrupted after the user
+  clarified that held-out test must be enabled.
+- Its first completed baseline item failed before task execution because
+  container-side `npm install @zed-industries/claude-agent-acp@latest` hit
+  `ECONNRESET`. A retry-only installer patch was added in
+  [rollout.py](skillopt/envs/skillsbench/rollout.py).
+- `outputs/skillsbench_claude_pilot_20260614_135343` is also invalid. It had
+  `eval_test=true`; the `claude-agent-acp` npm install succeeded on
+  `civ6-adjacency-optimizer`, but no result file or agent log appeared after
+  about 15 minutes, so the run was manually interrupted before any Selection
+  metric existed.
+- `outputs/skillsbench_claude_pilot_20260614_141531` is invalid/blocked. It
+  completed two Selection baseline rows, then was stopped to avoid spending the
+  remaining validation/test tasks on upstream model access errors. The first
+  row (`civ6-adjacency-optimizer`) failed with a relay channel 403; the second
+  row (`suricata-custom-exfil`) failed with insufficient quota 402.
 
 Implemented artifacts:
 - [adapter.py](skillopt/envs/skillsbench/adapter.py) wires the new env into
@@ -541,6 +598,48 @@ Implemented artifacts:
   `skillopt/envs/skillsbench/skills/software_engineering_initial.md`.
 
 Validation:
+- Formal run `outputs/skillsbench_claude_pilot_20260614_141531` was launched
+  detached with PID `84395`, then stopped after monitoring showed upstream
+  model API failures. Its resolved config confirms `eval_test=True`,
+  `test_env_num=0`, `sel_env_num=0`, `train_size=18`, `batch_size=18`,
+  `num_epochs=4`, and `skillsbench_model=claude-sonnet-4-6`. Its
+  `selection_eval_baseline/results.jsonl` contains 2 rows, both hard=0 due to
+  agent/model API errors rather than verifier failures.
+- Follow-up direct relay probes after stopping the run succeeded through both
+  `x-api-key` and `Authorization: Bearer` auth paths for
+  `claude-sonnet-4-6`, so the local `.env` mapping is not the immediate
+  blocker; the failed benchmark rows point to relay-side channel/quota
+  instability under real workload.
+- After adding the `skillsbench_auth_mode=api_key` workaround,
+  `.venv/bin/python -m py_compile skillopt/envs/skillsbench/adapter.py`
+  passed; config loading confirmed `skillsbench_auth_mode=api_key`; and a
+  BenchFlow env-resolution smoke confirmed `ANTHROPIC_API_KEY` remains present
+  while `ANTHROPIC_AUTH_TOKEN` remains an explicit empty string after
+  `resolve_agent_env`.
+- The api-key real-task smoke
+  `outputs/dev/skillsbench_claude_api_key_smoke_20260614_145446` completed
+  through agent execution and verifier without 402/403 API errors:
+  `trajectory_source=acp`, 16 tool calls, verifier ran, hard=0/reward=0 due to
+  one false-positive negative Suricata case. This is a normal task-scoring
+  failure rather than a model-access failure.
+- Direct real relay probe after sourcing `.env` succeeded against
+  `ANTHROPIC_BASE_URL/v1/messages` for model `claude-sonnet-4-6`.
+- The `hello-world` SkillsBench smoke completed end-to-end through SkillOpt
+  `run_batch`: hard=1, soft=1.0, 2 ACP tool calls, trajectory source `acp`,
+  and verifier passed 2/2 tests. Output:
+  [outputs/dev/skillsbench_claude_hello_smoke_20260614_1410](outputs/dev/skillsbench_claude_hello_smoke_20260614_1410).
+- Config parse check after the test-enabled update confirmed
+  `eval_test=True`, `test_env_num=0`, and `sel_env_num=0`.
+- Installer patch smoke confirmed the BenchFlow `claude-agent-acp` install
+  command now includes `--fetch-retries=5`.
+- `.venv/bin/python -m py_compile skillopt/envs/skillsbench/adapter.py`,
+  `bash -n scripts/run_skillsbench_claude_pilot.sh`, and `git diff --check`
+  passed after the Claude relay mapping update.
+- Config/adapter preflight after sourcing `.env` passed with no real rollout:
+  train=18, validation=9, test=61, and adapter `agent_env` contains
+  `ANTHROPIC_BASE_URL` plus `BENCHFLOW_PROVIDER_BASE_URL`.
+- `docker info` initially failed inside the Codex sandbox but succeeded outside
+  the sandbox after starting Docker Desktop.
 - `bash -n scripts/run_skillsbench_claude_pilot.sh` passed.
 - `.venv/bin/python -m py_compile skillopt/envs/skillsbench/dataloader.py skillopt/envs/skillsbench/rollout.py skillopt/envs/skillsbench/adapter.py scripts/train.py`
   passed after removing the single-category compatibility path.

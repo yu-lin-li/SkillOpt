@@ -3,7 +3,7 @@
 #
 # Usage:
 #   bash scripts/run_skillsbench_claude_pilot.sh
-#   bash scripts/run_skillsbench_claude_pilot.sh --cfg-options evaluation.eval_test=true
+#   bash scripts/run_skillsbench_claude_pilot.sh --cfg-options evaluation.eval_test=false
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -46,7 +46,7 @@ echo "  Split:      fixed split from data/skillsbench_split"
 echo "  Agent:      claude-agent-acp"
 echo "  Optimizer:  gpt-5.5"
 echo "  Target:     claude-sonnet-4-6"
-echo "  Test split: disabled by default"
+echo "  Test split: enabled"
 echo "  Output:     ${DEFAULT_OUT_ROOT}"
 echo "============================================================"
 

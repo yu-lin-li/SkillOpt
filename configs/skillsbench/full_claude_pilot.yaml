@@ -29,7 +29,7 @@ evaluation:
   use_gate: true
   sel_env_num: 0
   test_env_num: 0
-  eval_test: false
+  eval_test: true
 
 env:
   name: skillsbench
@@ -39,6 +39,7 @@ env:
   split_dir: data/skillsbench_split
   skillsbench_agent: claude-agent-acp
   skillsbench_model: claude-sonnet-4-6
+  skillsbench_auth_mode: api_key
   skillsbench_sandbox: docker
   sandbox_user: agent
   include_task_skills: false

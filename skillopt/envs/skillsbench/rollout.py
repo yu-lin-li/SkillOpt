@@ -28,7 +28,7 @@ def ensure_benchflow_importable(skillsbench_root: str | Path) -> None:
     """Make the user's local SkillsBench/BenchFlow install importable."""
     try:
         import benchflow  # noqa: F401
-
+        _patch_benchflow_agent_installers()
         return
     except ModuleNotFoundError:
         pass
@@ -47,6 +47,28 @@ def ensure_benchflow_importable(skillsbench_root: str | Path) -> None:
             "Could not import benchflow. Set env.skillsbench_root to a local "
             "SkillsBench checkout with `.venv` already synced."
         ) from exc
+    _patch_benchflow_agent_installers()
+
+
+def _patch_benchflow_agent_installers() -> None:
+    """Make transient npm fetch failures less likely during agent install."""
+    try:
+        from benchflow.agents.registry import AGENT_INSTALLERS
+    except Exception:  # noqa: BLE001
+        return
+    cmd = AGENT_INSTALLERS.get("claude-agent-acp")
+    if not cmd or "--fetch-retries=5" in cmd:
+        return
+    AGENT_INSTALLERS["claude-agent-acp"] = cmd.replace(
+        "npm install -g --prefix",
+        (
+            "npm install -g "
+            "--fetch-retries=5 "
+            "--fetch-retry-mintimeout=20000 "
+            "--fetch-retry-maxtimeout=120000 "
+            "--prefix"
+        ),
+    )
 
 
 def run_batch(
